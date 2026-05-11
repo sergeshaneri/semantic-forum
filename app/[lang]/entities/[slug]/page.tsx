@@ -1,0 +1,101 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { InterpretationCard } from "@/components/socionics/interpretation-card";
+import { isLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { mockUsers } from "@/lib/mock/data";
+import { api } from "@/lib/trpc/server";
+
+export const dynamic = "force-dynamic";
+
+export default async function EntityPage({
+  params,
+}: {
+  params: Promise<{ lang: string; slug: string }>;
+}) {
+  const { lang, slug } = await params;
+  if (!isLocale(lang)) notFound();
+
+  const dict = getDictionary(lang);
+
+  let data;
+  try {
+    data = await api.entity.getBySlug({ slug, language: lang });
+  } catch {
+    notFound();
+  }
+
+  const { entity, interpretations } = data;
+  const kindLabel =
+    entity.kind === "word" ? dict.entities.kindWord : dict.entities.kindPerson;
+
+  const authorsLookup = Object.fromEntries(
+    mockUsers.map((u) => [u.id, { username: u.username, name: u.name }]),
+  );
+
+  return (
+    <div className="mx-auto max-w-4xl px-6 py-12 space-y-10">
+      <Link
+        href={`/${lang}/entities`}
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-block"
+      >
+        {dict.entities.backToList}
+      </Link>
+
+      <header className="space-y-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="secondary" className="text-xs font-normal">
+            {kindLabel}
+          </Badge>
+          {entity.tags.map((t) => (
+            <span
+              key={t}
+              className="text-xs text-muted-foreground/80 font-mono"
+            >
+              #{t}
+            </span>
+          ))}
+        </div>
+        <h1 className="font-heading text-5xl font-semibold tracking-tight leading-tight">
+          {entity.title}
+        </h1>
+        <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl">
+          {entity.descriptionWiki}
+        </p>
+      </header>
+
+      <Separator />
+
+      <section className="space-y-5">
+        <div className="flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="font-heading text-2xl font-semibold tracking-tight">
+              {dict.entities.interpretationsCount(interpretations.length)}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {dict.interpretation.filterByTheory}: {dict.interpretation.allTheories}
+            </p>
+          </div>
+          <Button variant="default" size="sm">
+            + {dict.interpretation.addInterpretation}
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          {interpretations.map((i) => (
+            <InterpretationCard
+              key={i.id}
+              lang={lang}
+              dict={dict}
+              interpretation={i}
+              authorsLookup={authorsLookup}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
