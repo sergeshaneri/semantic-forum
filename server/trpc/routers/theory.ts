@@ -1,15 +1,11 @@
 import { TRPCError } from "@trpc/server";
+import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
-  findTheory,
-  findTheoryBySlug,
-  findTheoryObjectBySlug,
-  findUser,
-  listCitationsForObject,
-  listInterpretationsForTheory,
-  listTheoryObjects,
-  mockTheories,
-} from "@/lib/mock/data";
+  interpretations,
+  theories,
+  theoryObjects,
+} from "@/server/db/schema";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 const langSchema = z.enum(["ru", "en"]);
@@ -17,34 +13,96 @@ const langSchema = z.enum(["ru", "en"]);
 export const theoryRouter = createTRPCRouter({
   list: publicProcedure
     .input(z.object({ language: langSchema }))
-    .query(({ input }) =>
-      mockTheories
-        .filter((t) => t.language === input.language)
-        .map((t) => ({
-          ...t,
-          author: t.authorId ? findUser(t.authorId) : null,
-          parentTheory: t.parentTheoryId ? findTheory(t.parentTheoryId) : null,
-          objectCount: listTheoryObjects(t.id).length,
-        })),
-    ),
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db.query.theories.findMany({
+        where: eq(theories.language, input.language),
+        with: {
+          author: { columns: { id: true, username: true, name: true } },
+          parent: { columns: { id: true, name: true, slug: true } },
+          objects: { columns: { id: true } },
+          forks: { columns: { id: true } },
+        },
+      });
+
+      return rows.map((t) => ({
+        id: t.id,
+        slug: t.slug,
+        name: t.name,
+        description: t.description ?? "",
+        isSeed: t.isSeed,
+        ratingAvg: t.ratingAvg,
+        forkCount: t.forks.length,
+        objectCount: t.objects.length,
+        author: t.author
+          ? {
+              id: t.author.id,
+              username: t.author.username ?? "",
+              name: t.author.name ?? "",
+            }
+          : null,
+        parentTheory: t.parent
+          ? { id: t.parent.id, name: t.parent.name, slug: t.parent.slug }
+          : null,
+      }));
+    }),
 
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string(), language: langSchema }))
-    .query(({ input }) => {
-      const theory = findTheoryBySlug(input.slug, input.language);
+    .query(async ({ ctx, input }) => {
+      const theory = await ctx.db.query.theories.findFirst({
+        where: and(
+          eq(theories.slug, input.slug),
+          eq(theories.language, input.language),
+        ),
+        with: {
+          author: { columns: { id: true, username: true, name: true } },
+          parent: { columns: { id: true, name: true, slug: true } },
+          forks: { columns: { id: true } },
+          objects: true,
+        },
+      });
+
       if (!theory) throw new TRPCError({ code: "NOT_FOUND" });
-      const objects = listTheoryObjects(theory.id);
-      const interpretations = listInterpretationsForTheory(theory.id);
+
+      const [interpCount] = await ctx.db
+        .select({ count: count() })
+        .from(interpretations)
+        .where(eq(interpretations.theoryId, theory.id));
+
       return {
         theory: {
-          ...theory,
-          author: theory.authorId ? findUser(theory.authorId) : null,
-          parentTheory: theory.parentTheoryId
-            ? findTheory(theory.parentTheoryId)
+          id: theory.id,
+          slug: theory.slug,
+          name: theory.name,
+          description: theory.description ?? "",
+          isSeed: theory.isSeed,
+          ratingAvg: theory.ratingAvg,
+          forkCount: theory.forks.length,
+          author: theory.author
+            ? {
+                id: theory.author.id,
+                username: theory.author.username ?? "",
+                name: theory.author.name ?? "",
+                karma: 0,
+              }
+            : null,
+          parentTheory: theory.parent
+            ? {
+                id: theory.parent.id,
+                name: theory.parent.name,
+                slug: theory.parent.slug,
+              }
             : null,
         },
-        objects,
-        interpretationCount: interpretations.length,
+        objects: theory.objects.map((o) => ({
+          id: o.id,
+          name: o.name,
+          slug: o.slug,
+          kind: o.kind,
+          description: o.description ?? "",
+          metadata: o.metadata as Record<string, unknown> | null,
+        })),
+        interpretationCount: interpCount?.count ?? 0,
       };
     }),
 
@@ -56,12 +114,42 @@ export const theoryRouter = createTRPCRouter({
         language: langSchema,
       }),
     )
-    .query(({ input }) => {
-      const theory = findTheoryBySlug(input.theorySlug, input.language);
+    .query(async ({ ctx, input }) => {
+      const theory = await ctx.db.query.theories.findFirst({
+        where: and(
+          eq(theories.slug, input.theorySlug),
+          eq(theories.language, input.language),
+        ),
+        columns: { id: true, slug: true, name: true },
+      });
       if (!theory) throw new TRPCError({ code: "NOT_FOUND" });
-      const object = findTheoryObjectBySlug(theory.id, input.objectSlug);
+
+      const object = await ctx.db.query.theoryObjects.findFirst({
+        where: and(
+          eq(theoryObjects.theoryId, theory.id),
+          eq(theoryObjects.slug, input.objectSlug),
+        ),
+        with: { citations: true },
+      });
       if (!object) throw new TRPCError({ code: "NOT_FOUND" });
-      const citations = listCitationsForObject(object.id);
-      return { theory, object, citations };
+
+      return {
+        theory,
+        object: {
+          id: object.id,
+          slug: object.slug,
+          name: object.name,
+          kind: object.kind,
+          description: object.description ?? "",
+          metadata: object.metadata as Record<string, unknown> | null,
+        },
+        citations: object.citations.map((c) => ({
+          id: c.id,
+          authorName: c.authorName,
+          sourceTitle: c.sourceTitle ?? "",
+          quoteText: c.quoteText,
+          pageRef: c.pageRef ?? null,
+        })),
+      };
     }),
 });

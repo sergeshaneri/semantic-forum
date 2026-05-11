@@ -6,6 +6,7 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
 
 type Author = { username: string; name: string; karma: number } | null;
+type CommentAuthor = { username: string; name: string } | null;
 type Theory = { name: string; slug: string } | null;
 type TheoryObject = {
   name: string;
@@ -19,7 +20,7 @@ type Comment = {
   stance: "pro" | "contra" | "neutral";
   votesUp: number;
   votesDown: number;
-  authorId: string;
+  author: CommentAuthor;
 };
 
 type Props = {
@@ -36,7 +37,6 @@ type Props = {
     author: Author;
     comments: Comment[];
   };
-  authorsLookup?: Record<string, { username: string; name: string }>;
 };
 
 function getSymbol(metadata: Record<string, unknown> | null | undefined) {
@@ -51,7 +51,6 @@ export function InterpretationCard({
   lang,
   dict,
   interpretation: i,
-  authorsLookup = {},
 }: Props) {
   const symbol = getSymbol(i.theoryObject?.metadata);
 
@@ -127,37 +126,34 @@ export function InterpretationCard({
                 {i.comments.length} {dict.interpretation.comments}
               </div>
               <ul className="space-y-3">
-                {i.comments.map((c) => {
-                  const author = authorsLookup[c.authorId];
-                  return (
-                    <li
-                      key={c.id}
-                      className="flex items-start gap-3 text-sm leading-relaxed"
-                    >
-                      <VoteWidget
-                        score={c.votesUp - c.votesDown}
-                        votesUp={c.votesUp}
-                        votesDown={c.votesDown}
-                        size="sm"
-                        className="flex-shrink-0 pt-0.5"
-                      />
-                      <div className="flex-1 min-w-0 space-y-1.5">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {author && (
-                            <span className="font-medium text-foreground">
-                              @{author.username}
-                            </span>
-                          )}
-                          <StanceBadge
-                            stance={c.stance}
-                            label={stanceLabel(c.stance)}
-                          />
-                        </div>
-                        <p className="text-foreground/90">{c.body}</p>
+                {i.comments.map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex items-start gap-3 text-sm leading-relaxed"
+                  >
+                    <VoteWidget
+                      score={c.votesUp - c.votesDown}
+                      votesUp={c.votesUp}
+                      votesDown={c.votesDown}
+                      size="sm"
+                      className="flex-shrink-0 pt-0.5"
+                    />
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {c.author && (
+                          <span className="font-medium text-foreground">
+                            @{c.author.username}
+                          </span>
+                        )}
+                        <StanceBadge
+                          stance={c.stance}
+                          label={stanceLabel(c.stance)}
+                        />
                       </div>
-                    </li>
-                  );
-                })}
+                      <p className="text-foreground/90">{c.body}</p>
+                    </div>
+                  </li>
+                ))}
               </ul>
             </CardFooter>
           )}

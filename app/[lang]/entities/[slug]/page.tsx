@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { InterpretationCard } from "@/components/socionics/interpretation-card";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { mockUsers } from "@/lib/mock/data";
 import { api } from "@/lib/trpc/server";
 
 export const dynamic = "force-dynamic";
@@ -31,10 +30,6 @@ export default async function EntityPage({
   const { entity, interpretations } = data;
   const kindLabel =
     entity.kind === "word" ? dict.entities.kindWord : dict.entities.kindPerson;
-
-  const authorsLookup = Object.fromEntries(
-    mockUsers.map((u) => [u.id, { username: u.username, name: u.name }]),
-  );
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12 space-y-10">
@@ -91,7 +86,6 @@ export default async function EntityPage({
               lang={lang}
               dict={dict}
               interpretation={i}
-              authorsLookup={authorsLookup}
             />
           ))}
         </div>
