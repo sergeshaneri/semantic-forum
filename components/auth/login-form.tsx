@@ -2,7 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +15,11 @@ type Props = {
   lang: Locale;
   dict: Dictionary;
   googleAvailable: boolean;
+  callbackUrl: string;
 };
 
-export function LoginForm({ lang, dict, googleAvailable }: Props) {
+export function LoginForm({ lang, dict, googleAvailable, callbackUrl }: Props) {
   const router = useRouter();
-  const params = useSearchParams();
-  const callbackUrl = params?.get("callbackUrl") ?? `/${lang}`;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -9,8 +9,10 @@ export const dynamic = "force-dynamic";
 
 export default async function LoginPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ callbackUrl?: string }>;
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
@@ -18,6 +20,7 @@ export default async function LoginPage({
   const session = await auth();
   if (session?.user) redirect(`/${lang}`);
 
+  const { callbackUrl } = await searchParams;
   const dict = getDictionary(lang);
   const googleAvailable = Boolean(
     process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET,
@@ -39,6 +42,7 @@ export default async function LoginPage({
             lang={lang}
             dict={dict}
             googleAvailable={googleAvailable}
+            callbackUrl={callbackUrl ?? `/${lang}`}
           />
         </CardContent>
       </Card>
