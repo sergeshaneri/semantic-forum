@@ -80,6 +80,19 @@ export type Dictionary = {
     registeredButLoginFailed: string;
     logout: string;
   };
+  addInterpretation: {
+    theory: string;
+    theoryObject: string;
+    body: string;
+    bodyPlaceholder: string;
+    bodyHint: string;
+    selectTheory: string;
+    selectObject: string;
+    selectBoth: string;
+    publish: string;
+    cancel: string;
+    loginToAdd: string;
+  };
   health: {
     label: string;
     stub: string;
@@ -171,6 +184,20 @@ const ru: Dictionary = {
       "Аккаунт создан, но войти не удалось. Попробуй на странице входа.",
     logout: "Выйти",
   },
+  addInterpretation: {
+    theory: "Теория",
+    theoryObject: "Объект теории",
+    body: "Аргументация",
+    bodyPlaceholder:
+      "Объясни почему эта сущность относится к выбранному объекту теории...",
+    bodyHint: "Минимум 20 символов. Опирайся на семантику теории.",
+    selectTheory: "выбери теорию",
+    selectObject: "выбери объект",
+    selectBoth: "Выбери теорию и объект",
+    publish: "Опубликовать",
+    cancel: "Отмена",
+    loginToAdd: "Войди чтобы добавить интерпретацию",
+  },
   health: {
     label: "Состояние сервера",
     stub: "Stub-режим: данные из mock-слоя, БД не подключена.",
@@ -261,6 +288,20 @@ const en: Dictionary = {
     registeredButLoginFailed:
       "Account created, but sign-in failed. Try the sign-in page.",
     logout: "Sign out",
+  },
+  addInterpretation: {
+    theory: "Theory",
+    theoryObject: "Theory object",
+    body: "Argument",
+    bodyPlaceholder:
+      "Explain why this entity relates to the chosen theory object...",
+    bodyHint: "Minimum 20 characters. Ground it in the theory's semantics.",
+    selectTheory: "pick a theory",
+    selectObject: "pick an object",
+    selectBoth: "Pick both theory and object",
+    publish: "Publish",
+    cancel: "Cancel",
+    loginToAdd: "Sign in to add an interpretation",
   },
   health: {
     label: "Server status",

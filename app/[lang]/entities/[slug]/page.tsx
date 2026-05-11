@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { AddInterpretationForm } from "@/components/socionics/add-interpretation-form";
 import { InterpretationCard } from "@/components/socionics/interpretation-card";
 import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
@@ -69,7 +69,7 @@ export default async function EntityPage({
       <Separator />
 
       <section className="space-y-5">
-        <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h2 className="font-heading text-2xl font-semibold tracking-tight">
               {interpretationsCount(interpretations.length, lang)}
@@ -78,9 +78,20 @@ export default async function EntityPage({
               {dict.interpretation.filterByTheory}: {dict.interpretation.allTheories}
             </p>
           </div>
-          <Button variant="default" size="sm">
-            + {dict.interpretation.addInterpretation}
-          </Button>
+          {isAuthed ? (
+            <AddInterpretationForm
+              entityId={entity.id}
+              lang={lang}
+              dict={dict}
+            />
+          ) : (
+            <Link
+              href={`/${lang}/login?callbackUrl=/${lang}/entities/${entity.slug}`}
+              className="text-sm rounded-md border border-border px-3 py-1.5 hover:bg-muted transition-colors"
+            >
+              {dict.addInterpretation.loginToAdd}
+            </Link>
+          )}
         </div>
 
         <div className="space-y-4">

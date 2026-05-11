@@ -106,6 +106,22 @@ export const theoryRouter = createTRPCRouter({
       };
     }),
 
+  getObjects: publicProcedure
+    .input(z.object({ theoryId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const objects = await ctx.db.query.theoryObjects.findMany({
+        where: eq(theoryObjects.theoryId, input.theoryId),
+      });
+      return objects.map((o) => ({
+        id: o.id,
+        slug: o.slug,
+        name: o.name,
+        kind: o.kind,
+        description: o.description ?? "",
+        metadata: o.metadata as Record<string, unknown> | null,
+      }));
+    }),
+
   getObject: publicProcedure
     .input(
       z.object({
