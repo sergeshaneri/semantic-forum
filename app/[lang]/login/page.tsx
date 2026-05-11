@@ -1,7 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/components/auth/login-form";
-import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -16,9 +15,6 @@ export default async function LoginPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
-
-  const session = await auth();
-  if (session?.user) redirect(`/${lang}`);
 
   const { callbackUrl } = await searchParams;
   const dict = getDictionary(lang);
