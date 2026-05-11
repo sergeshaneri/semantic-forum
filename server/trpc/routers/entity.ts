@@ -2,11 +2,59 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { entities, interpretations, votes } from "@/server/db/schema";
-import { createTRPCRouter, publicProcedure } from "../init";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 
 const langSchema = z.enum(["ru", "en"]);
+const slugSchema = z
+  .string()
+  .min(2, "Минимум 2 символа")
+  .max(80, "Максимум 80 символов")
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Только латиница, цифры и дефисы");
 
 export const entityRouter = createTRPCRouter({
+  create: protectedProcedure
+    .input(
+      z.object({
+        kind: z.enum(["word", "person"]),
+        title: z.string().min(1).max(300),
+        slug: slugSchema,
+        descriptionWiki: z.string().min(20).max(3000),
+        language: langSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db
+        .select({ id: entities.id })
+        .from(entities)
+        .where(
+          and(
+            eq(entities.slug, input.slug),
+            eq(entities.language, input.language),
+          ),
+        )
+        .limit(1);
+      if (existing.length > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Сущность с таким slug уже существует",
+        });
+      }
+
+      const [inserted] = await ctx.db
+        .insert(entities)
+        .values({
+          kind: input.kind,
+          title: input.title,
+          slug: input.slug,
+          descriptionWiki: input.descriptionWiki,
+          language: input.language,
+          createdBy: ctx.userId,
+        })
+        .returning({ id: entities.id, slug: entities.slug });
+
+      return { id: inserted!.id, slug: inserted!.slug };
+    }),
+
   list: publicProcedure
     .input(
       z.object({

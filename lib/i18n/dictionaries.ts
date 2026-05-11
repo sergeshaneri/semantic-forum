@@ -93,6 +93,20 @@ export type Dictionary = {
     cancel: string;
     loginToAdd: string;
   };
+  addEntity: {
+    button: string;
+    kind: string;
+    title: string;
+    titleWordPlaceholder: string;
+    titlePersonPlaceholder: string;
+    slug: string;
+    slugHint: string;
+    description: string;
+    descriptionPlaceholder: string;
+    descriptionHint: string;
+    create: string;
+    loginToAdd: string;
+  };
   health: {
     label: string;
     stub: string;
@@ -198,6 +212,22 @@ const ru: Dictionary = {
     cancel: "Отмена",
     loginToAdd: "Войди чтобы добавить интерпретацию",
   },
+  addEntity: {
+    button: "Добавить сущность",
+    kind: "Тип",
+    title: "Название",
+    titleWordPlaceholder: "Например: Эмпатия",
+    titlePersonPlaceholder: "Например: Достоевский",
+    slug: "Slug (для URL)",
+    slugHint:
+      "Латиница, цифры и дефисы. Автоматически генерируется из названия, можно поправить.",
+    description: "Вики-описание",
+    descriptionPlaceholder:
+      "Нейтральное определение, без соционической интерпретации (она идёт отдельно через теории)...",
+    descriptionHint: "Минимум 20 символов. Базовый смысл без типажа.",
+    create: "Создать",
+    loginToAdd: "Войди чтобы добавить сущность",
+  },
   health: {
     label: "Состояние сервера",
     stub: "Stub-режим: данные из mock-слоя, БД не подключена.",
@@ -302,6 +332,22 @@ const en: Dictionary = {
     publish: "Publish",
     cancel: "Cancel",
     loginToAdd: "Sign in to add an interpretation",
+  },
+  addEntity: {
+    button: "Add entity",
+    kind: "Kind",
+    title: "Title",
+    titleWordPlaceholder: "e.g. Empathy",
+    titlePersonPlaceholder: "e.g. Dostoevsky",
+    slug: "Slug (URL part)",
+    slugHint:
+      "Lowercase letters, digits, and hyphens. Auto-generated from title.",
+    description: "Wiki description",
+    descriptionPlaceholder:
+      "Neutral definition, without a socionic interpretation (those go separately via theories)...",
+    descriptionHint: "Minimum 20 characters. Plain meaning, no typing.",
+    create: "Create",
+    loginToAdd: "Sign in to add an entity",
   },
   health: {
     label: "Server status",
