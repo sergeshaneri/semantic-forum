@@ -27,6 +27,18 @@ export const theoryObjectKindEnum = pgEnum("theory_object_kind", [
 ]);
 export const stanceEnum = pgEnum("stance", ["pro", "contra", "neutral"]);
 export const voteTargetEnum = pgEnum("vote_target", ["interpretation", "comment"]);
+export const entityRelationKindEnum = pgEnum("entity_relation_kind", [
+  "related",
+  "synonym",
+  "antonym",
+  "part_of",
+  "contains",
+  "example_of",
+  "instance_of",
+  "causes",
+  "precedes",
+  "custom",
+]);
 
 export const users = pgTable("users", {
   id: text("id")
@@ -216,6 +228,33 @@ export const votes = pgTable(
   (t) => [uniqueIndex("votes_user_target_idx").on(t.userId, t.targetType, t.targetId)],
 );
 
+export const entityRelations = pgTable(
+  "entity_relations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sourceEntityId: uuid("source_entity_id")
+      .notNull()
+      .references(() => entities.id, { onDelete: "cascade" }),
+    targetEntityId: uuid("target_entity_id")
+      .notNull()
+      .references(() => entities.id, { onDelete: "cascade" }),
+    kind: entityRelationKindEnum("kind").notNull(),
+    customLabel: varchar("custom_label", { length: 100 }),
+    description: text("description"),
+    createdBy: text("created_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("entity_relations_uniq_idx").on(
+      t.sourceEntityId,
+      t.targetEntityId,
+      t.kind,
+    ),
+  ],
+);
+
 export const tags = pgTable(
   "tags",
   {
@@ -288,6 +327,25 @@ export const entitiesRelations = relations(entities, ({ one, many }) => ({
   creator: one(users, { fields: [entities.createdBy], references: [users.id] }),
   interpretations: many(interpretations),
   tags: many(entityTags),
+  relationsFrom: many(entityRelations, { relationName: "relationSource" }),
+  relationsTo: many(entityRelations, { relationName: "relationTarget" }),
+}));
+
+export const entityRelationsRelations = relations(entityRelations, ({ one }) => ({
+  source: one(entities, {
+    fields: [entityRelations.sourceEntityId],
+    references: [entities.id],
+    relationName: "relationSource",
+  }),
+  target: one(entities, {
+    fields: [entityRelations.targetEntityId],
+    references: [entities.id],
+    relationName: "relationTarget",
+  }),
+  creator: one(users, {
+    fields: [entityRelations.createdBy],
+    references: [users.id],
+  }),
 }));
 
 export const interpretationsRelations = relations(interpretations, ({ one, many }) => ({

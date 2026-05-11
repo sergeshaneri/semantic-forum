@@ -127,6 +127,35 @@ export type Dictionary = {
     inTheory: string;
     forks: string;
   };
+  entityRelations: {
+    title: string;
+    empty: string;
+    addButton: string;
+    target: string;
+    pickTarget: string;
+    kind: string;
+    customLabel: string;
+    customLabelPlaceholder: string;
+    description: string;
+    descriptionPlaceholder: string;
+    optional: string;
+    create: string;
+    kinds: Record<
+      | "related"
+      | "synonym"
+      | "antonym"
+      | "part_of"
+      | "contains"
+      | "example_of"
+      | "instance_of"
+      | "causes"
+      | "caused_by"
+      | "precedes"
+      | "follows"
+      | "custom",
+      string
+    >;
+  };
   health: {
     label: string;
     stub: string;
@@ -268,6 +297,34 @@ const ru: Dictionary = {
     inTheory: "в теории",
     forks: "форков",
   },
+  entityRelations: {
+    title: "Связи",
+    empty: "Связей пока нет.",
+    addButton: "Добавить связь",
+    target: "Связать с",
+    pickTarget: "Выбери сущность",
+    kind: "Тип связи",
+    customLabel: "Своя подпись",
+    customLabelPlaceholder: "например: учитель, преемник, символизирует...",
+    description: "Описание связи",
+    descriptionPlaceholder: "Поясни в одной строке",
+    optional: "необязательно",
+    create: "Связать",
+    kinds: {
+      related: "связан с",
+      synonym: "синоним",
+      antonym: "антоним",
+      part_of: "часть",
+      contains: "включает",
+      example_of: "пример",
+      instance_of: "экземпляр",
+      causes: "вызывает",
+      caused_by: "вызвано",
+      precedes: "предшествует",
+      follows: "следует за",
+      custom: "своё",
+    },
+  },
   health: {
     label: "Состояние сервера",
     stub: "Stub-режим: данные из mock-слоя, БД не подключена.",
@@ -408,6 +465,34 @@ const en: Dictionary = {
     inEntity: "on entity",
     inTheory: "in theory",
     forks: "forks",
+  },
+  entityRelations: {
+    title: "Relations",
+    empty: "No relations yet.",
+    addButton: "Add relation",
+    target: "Link with",
+    pickTarget: "Pick an entity",
+    kind: "Relation type",
+    customLabel: "Custom label",
+    customLabelPlaceholder: "e.g. teacher, successor, symbolizes...",
+    description: "Relation note",
+    descriptionPlaceholder: "Explain in one line",
+    optional: "optional",
+    create: "Link",
+    kinds: {
+      related: "related to",
+      synonym: "synonym",
+      antonym: "antonym",
+      part_of: "part of",
+      contains: "contains",
+      example_of: "example of",
+      instance_of: "instance of",
+      causes: "causes",
+      caused_by: "caused by",
+      precedes: "precedes",
+      follows: "follows",
+      custom: "custom",
+    },
   },
   health: {
     label: "Server status",

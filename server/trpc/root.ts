@@ -1,6 +1,7 @@
 import { createCallerFactory, createTRPCRouter } from "./init";
 import { authRouter } from "./routers/auth";
 import { entityRouter } from "./routers/entity";
+import { entityRelationRouter } from "./routers/entityRelation";
 import { healthRouter } from "./routers/health";
 import { interpretationRouter } from "./routers/interpretation";
 import { theoryRouter } from "./routers/theory";
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   user: userRouter,
   entity: entityRouter,
+  entityRelation: entityRelationRouter,
   theory: theoryRouter,
   interpretation: interpretationRouter,
   vote: voteRouter,

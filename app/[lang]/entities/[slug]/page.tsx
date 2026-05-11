@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AddInterpretationForm } from "@/components/socionics/add-interpretation-form";
+import { EntityRelations } from "@/components/socionics/entity-relations";
 import { InterpretationCard } from "@/components/socionics/interpretation-card";
 import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
@@ -23,6 +24,8 @@ export default async function EntityPage({
   const dict = getDictionary(lang);
   const session = await auth();
   const isAuthed = Boolean(session?.user);
+  const currentUserId =
+    (session?.user as { id?: string } | undefined)?.id ?? null;
 
   let data;
   try {
@@ -106,6 +109,17 @@ export default async function EntityPage({
           ))}
         </div>
       </section>
+
+      <Separator />
+
+      <EntityRelations
+        entityId={entity.id}
+        entitySlug={entity.slug}
+        lang={lang}
+        dict={dict}
+        isAuthed={isAuthed}
+        currentUserId={currentUserId}
+      />
     </div>
   );
 }
