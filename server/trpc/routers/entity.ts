@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { entities, interpretations } from "@/server/db/schema";
+import { entities, interpretations, votes } from "@/server/db/schema";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 const langSchema = z.enum(["ru", "en"]);
@@ -101,6 +101,49 @@ export const entityRouter = createTRPCRouter({
 
       if (!entity) throw new TRPCError({ code: "NOT_FOUND" });
 
+      const userId = ctx.session?.user?.id ?? null;
+
+      const interpIds = entity.interpretations.map((i) => i.id);
+      const commentIds = entity.interpretations.flatMap((i) =>
+        i.comments.map((c) => c.id),
+      );
+
+      const interpVotes = new Map<string, 1 | -1>();
+      const commentVotes = new Map<string, 1 | -1>();
+
+      if (userId) {
+        if (interpIds.length > 0) {
+          const rows = await ctx.db
+            .select({ targetId: votes.targetId, value: votes.value })
+            .from(votes)
+            .where(
+              and(
+                eq(votes.userId, userId),
+                eq(votes.targetType, "interpretation"),
+                inArray(votes.targetId, interpIds),
+              ),
+            );
+          for (const r of rows) {
+            interpVotes.set(r.targetId, r.value as 1 | -1);
+          }
+        }
+        if (commentIds.length > 0) {
+          const rows = await ctx.db
+            .select({ targetId: votes.targetId, value: votes.value })
+            .from(votes)
+            .where(
+              and(
+                eq(votes.userId, userId),
+                eq(votes.targetType, "comment"),
+                inArray(votes.targetId, commentIds),
+              ),
+            );
+          for (const r of rows) {
+            commentVotes.set(r.targetId, r.value as 1 | -1);
+          }
+        }
+      }
+
       return {
         entity: {
           id: entity.id,
@@ -116,6 +159,7 @@ export const entityRouter = createTRPCRouter({
           votesUp: i.votesUp,
           votesDown: i.votesDown,
           score: i.score,
+          userVote: (interpVotes.get(i.id) ?? 0) as 1 | -1 | 0,
           theory: i.theory,
           theoryObject: i.theoryObject
             ? {
@@ -141,6 +185,7 @@ export const entityRouter = createTRPCRouter({
             stance: c.stance,
             votesUp: c.votesUp,
             votesDown: c.votesDown,
+            userVote: (commentVotes.get(c.id) ?? 0) as 1 | -1 | 0,
             author: c.author
               ? {
                   id: c.author.id,

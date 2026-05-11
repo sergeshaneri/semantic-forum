@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { InterpretationCard } from "@/components/socionics/interpretation-card";
+import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { interpretationsCount } from "@/lib/i18n/formatters";
@@ -20,6 +21,8 @@ export default async function EntityPage({
   if (!isLocale(lang)) notFound();
 
   const dict = getDictionary(lang);
+  const session = await auth();
+  const isAuthed = Boolean(session?.user);
 
   let data;
   try {
@@ -87,6 +90,7 @@ export default async function EntityPage({
               lang={lang}
               dict={dict}
               interpretation={i}
+              isAuthed={isAuthed}
             />
           ))}
         </div>

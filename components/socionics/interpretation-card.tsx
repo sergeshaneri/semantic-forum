@@ -20,18 +20,21 @@ type Comment = {
   stance: "pro" | "contra" | "neutral";
   votesUp: number;
   votesDown: number;
+  userVote: 1 | -1 | 0;
   author: CommentAuthor;
 };
 
 type Props = {
   lang: Locale;
   dict: Dictionary;
+  isAuthed: boolean;
   interpretation: {
     id: string;
     body: string;
     score: number;
     votesUp: number;
     votesDown: number;
+    userVote: 1 | -1 | 0;
     theory: Theory;
     theoryObject: TheoryObject;
     author: Author;
@@ -50,9 +53,11 @@ function getSymbol(metadata: Record<string, unknown> | null | undefined) {
 export function InterpretationCard({
   lang,
   dict,
+  isAuthed,
   interpretation: i,
 }: Props) {
   const symbol = getSymbol(i.theoryObject?.metadata);
+  const loginHref = `/${lang}/login`;
 
   const stanceLabel = (s: Comment["stance"]) =>
     s === "pro"
@@ -66,9 +71,14 @@ export function InterpretationCard({
       <div className="flex">
         <div className="flex-shrink-0 border-r border-border px-3 py-5 flex items-start">
           <VoteWidget
+            targetType="interpretation"
+            targetId={i.id}
             score={i.score}
             votesUp={i.votesUp}
             votesDown={i.votesDown}
+            userVote={i.userVote}
+            isAuthed={isAuthed}
+            loginHref={loginHref}
           />
         </div>
         <div className="flex-1 min-w-0">
@@ -76,9 +86,12 @@ export function InterpretationCard({
             <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
               {i.author && (
                 <>
-                  <span className="text-foreground font-medium">
+                  <Link
+                    href={`/${lang}/u/${i.author.username}`}
+                    className="text-foreground font-medium hover:underline underline-offset-2"
+                  >
                     @{i.author.username}
-                  </span>
+                  </Link>
                   <span className="text-muted-foreground/60">
                     · {i.author.karma} {dict.interpretation.karma}
                   </span>
@@ -132,18 +145,26 @@ export function InterpretationCard({
                     className="flex items-start gap-3 text-sm leading-relaxed"
                   >
                     <VoteWidget
+                      targetType="comment"
+                      targetId={c.id}
                       score={c.votesUp - c.votesDown}
                       votesUp={c.votesUp}
                       votesDown={c.votesDown}
+                      userVote={c.userVote}
+                      isAuthed={isAuthed}
+                      loginHref={loginHref}
                       size="sm"
                       className="flex-shrink-0 pt-0.5"
                     />
                     <div className="flex-1 min-w-0 space-y-1.5">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {c.author && (
-                          <span className="font-medium text-foreground">
+                          <Link
+                            href={`/${lang}/u/${c.author.username}`}
+                            className="font-medium text-foreground hover:underline underline-offset-2"
+                          >
                             @{c.author.username}
-                          </span>
+                          </Link>
                         )}
                         <StanceBadge
                           stance={c.stance}
