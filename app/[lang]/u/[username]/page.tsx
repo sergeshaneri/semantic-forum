@@ -1,0 +1,336 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { isLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { api } from "@/lib/trpc/server";
+
+export const dynamic = "force-dynamic";
+
+function getSymbol(metadata: Record<string, unknown> | null | undefined) {
+  if (metadata && typeof metadata === "object" && "symbol" in metadata) {
+    const v = (metadata as { symbol?: unknown }).symbol;
+    return typeof v === "string" ? v : null;
+  }
+  return null;
+}
+
+export default async function UserProfilePage({
+  params,
+}: {
+  params: Promise<{ lang: string; username: string }>;
+}) {
+  const { lang, username } = await params;
+  if (!isLocale(lang)) notFound();
+
+  const dict = getDictionary(lang);
+  let data;
+  try {
+    data = await api.user.getProfile({ username });
+  } catch {
+    notFound();
+  }
+
+  const {
+    user,
+    karma,
+    counters,
+    topInterpretation,
+    controversialInterpretation,
+    favoriteObjects,
+    favoriteTheory,
+    recentInterpretations,
+    theoriesAuthored,
+  } = data;
+
+  const initial = (user.username[0] ?? "u").toUpperCase();
+  const joined = new Date(user.createdAt).toLocaleDateString(
+    lang === "ru" ? "ru-RU" : "en-US",
+    { day: "numeric", month: "long", year: "numeric" },
+  );
+
+  return (
+    <div className="mx-auto max-w-5xl px-6 py-12 space-y-10">
+      <header className="flex items-center gap-5">
+        <div className="size-20 rounded-full bg-foreground text-background flex items-center justify-center text-2xl font-semibold">
+          {initial}
+        </div>
+        <div className="space-y-1">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight">
+            {user.name || `@${user.username}`}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            @{user.username} · {dict.profile.joined} {joined}
+          </p>
+        </div>
+      </header>
+
+      <section className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <StatCell value={karma >= 0 ? `+${karma}` : `${karma}`} label={dict.profile.karma} highlight />
+        <StatCell value={counters.interpretations} label={dict.profile.interpretations} />
+        <StatCell value={counters.comments} label={dict.profile.comments} />
+        <StatCell value={counters.entities} label={dict.profile.entities} />
+        <StatCell value={counters.theories} label={dict.profile.theories} />
+      </section>
+
+      {favoriteTheory && (
+        <section className="space-y-3">
+          <h2 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
+            {dict.profile.favoriteTheory}
+          </h2>
+          <Link
+            href={`/${lang}/theories/${favoriteTheory.slug}`}
+            className="inline-block"
+          >
+            <Card className="hover:border-foreground/40 transition-colors">
+              <CardContent className="py-4 flex items-center gap-3">
+                <span className="font-heading text-lg">
+                  {favoriteTheory.name}
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">
+                  {favoriteTheory.count} {dict.profile.interpretations}
+                </span>
+              </CardContent>
+            </Card>
+          </Link>
+        </section>
+      )}
+
+      {favoriteObjects.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
+            {dict.profile.favoriteObjects}
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {favoriteObjects.map((o) => {
+              const symbol = getSymbol(o.metadata);
+              return (
+                <Link
+                  key={o.id}
+                  href={
+                    o.theory
+                      ? `/${lang}/theories/${o.theory.slug}/objects/${o.slug}`
+                      : "#"
+                  }
+                  className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+                >
+                  {symbol && (
+                    <span className="font-mono font-semibold">{symbol}</span>
+                  )}
+                  <span>{o.name}</span>
+                  <span className="text-xs text-muted-foreground/70 font-mono">
+                    × {o.count}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {topInterpretation && (
+        <section className="space-y-3">
+          <h2 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
+            {dict.profile.topInterpretation}
+          </h2>
+          <InterpretationPreview lang={lang} dict={dict} item={topInterpretation} />
+        </section>
+      )}
+
+      {controversialInterpretation && (
+        <section className="space-y-3">
+          <h2 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
+            {dict.profile.controversialInterpretation}
+          </h2>
+          <InterpretationPreview
+            lang={lang}
+            dict={dict}
+            item={controversialInterpretation}
+          />
+        </section>
+      )}
+
+      <Separator />
+
+      {theoriesAuthored.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="font-heading text-xl font-semibold tracking-tight">
+            {dict.profile.theoriesAuthored}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {theoriesAuthored.map((t) => (
+              <Link
+                key={t.id}
+                href={`/${lang}/theories/${t.slug}`}
+                className="block"
+              >
+                <Card className="hover:border-foreground/40 transition-colors">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">{t.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4 space-y-1">
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {t.description}
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 font-mono">
+                      {t.forkCount} {dict.profile.forks}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="space-y-3">
+        <h2 className="font-heading text-xl font-semibold tracking-tight">
+          {dict.profile.recentInterpretations}
+        </h2>
+        {recentInterpretations.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {dict.profile.noInterpretations}
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {recentInterpretations.map((i) => {
+              const symbol = getSymbol(i.theoryObject?.metadata);
+              return (
+                <li
+                  key={i.id}
+                  className="border-l-2 border-border pl-4 py-1 space-y-1"
+                >
+                  <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                    <span className="font-mono">
+                      {i.score >= 0 ? `+${i.score}` : i.score}
+                    </span>
+                    <span>·</span>
+                    {i.entity && (
+                      <>
+                        <span>{dict.profile.inEntity}</span>
+                        <Link
+                          href={`/${lang}/entities/${i.entity.slug}`}
+                          className="text-foreground hover:underline underline-offset-2"
+                        >
+                          {i.entity.title}
+                        </Link>
+                      </>
+                    )}
+                    {i.theoryObject && (
+                      <>
+                        <span>·</span>
+                        <span className="font-mono inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-foreground/5">
+                          {symbol && (
+                            <span className="font-semibold">{symbol}</span>
+                          )}
+                          <span>{i.theoryObject.name}</span>
+                        </span>
+                      </>
+                    )}
+                    {i.theory && (
+                      <>
+                        <span>{dict.profile.inTheory}</span>
+                        <Link
+                          href={`/${lang}/theories/${i.theory.slug}`}
+                          className="hover:text-foreground underline underline-offset-2 decoration-1 decoration-muted-foreground/40"
+                        >
+                          {i.theory.name}
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-sm text-foreground/90 line-clamp-2">
+                    {i.body}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function StatCell({
+  value,
+  label,
+  highlight,
+}: {
+  value: number | string;
+  label: string;
+  highlight?: boolean;
+}) {
+  return (
+    <Card className={highlight ? "border-foreground/30" : ""}>
+      <CardContent className="py-4 space-y-0.5">
+        <div className="font-heading text-2xl font-semibold tabular-nums">
+          {value}
+        </div>
+        <div className="text-xs text-muted-foreground uppercase tracking-wider">
+          {label}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function InterpretationPreview({
+  lang,
+  dict,
+  item,
+}: {
+  lang: string;
+  dict: ReturnType<typeof getDictionary>;
+  item: {
+    score: number;
+    votesUp: number;
+    votesDown: number;
+    body: string;
+    entity: { slug: string; title: string } | null;
+    theory: { slug: string; name: string } | null;
+    theoryObject: {
+      slug: string;
+      name: string;
+      metadata: Record<string, unknown> | null;
+    } | null;
+  };
+}) {
+  const symbol = getSymbol(item.theoryObject?.metadata);
+  return (
+    <Card>
+      <CardContent className="py-4 space-y-2">
+        <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+          <span className="font-mono font-semibold text-foreground">
+            +{item.votesUp} / −{item.votesDown}
+          </span>
+          {item.entity && (
+            <>
+              <span>·</span>
+              <span>{dict.profile.inEntity}</span>
+              <Link
+                href={`/${lang}/entities/${item.entity.slug}`}
+                className="text-foreground hover:underline underline-offset-2"
+              >
+                {item.entity.title}
+              </Link>
+            </>
+          )}
+          {item.theoryObject && (
+            <>
+              <span>·</span>
+              <span className="font-mono inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-foreground/5">
+                {symbol && <span className="font-semibold">{symbol}</span>}
+                <span>{item.theoryObject.name}</span>
+              </span>
+            </>
+          )}
+        </div>
+        <p className="text-sm text-foreground/90 line-clamp-3 leading-relaxed">
+          {item.body}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}

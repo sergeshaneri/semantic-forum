@@ -1,0 +1,268 @@
+import { TRPCError } from "@trpc/server";
+import { count, desc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
+import {
+  comments,
+  entities,
+  interpretations,
+  theories,
+  theoryObjects,
+  users,
+} from "@/server/db/schema";
+import { createTRPCRouter, publicProcedure } from "../init";
+
+export const userRouter = createTRPCRouter({
+  getProfile: publicProcedure
+    .input(z.object({ username: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.username, input.username),
+        columns: {
+          id: true,
+          username: true,
+          name: true,
+          image: true,
+          createdAt: true,
+        },
+      });
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const userId = user.id;
+
+      const [counters] = await Promise.all([
+        ctx.db
+          .select({
+            interpretations: sql<number>`(select count(*)::int from ${interpretations} where ${interpretations.authorId} = ${userId})`,
+            comments: sql<number>`(select count(*)::int from ${comments} where ${comments.authorId} = ${userId})`,
+            entities: sql<number>`(select count(*)::int from ${entities} where ${entities.createdBy} = ${userId})`,
+            theories: sql<number>`(select count(*)::int from ${theories} where ${theories.authorId} = ${userId})`,
+          })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1)
+          .then((r) => r[0]!),
+      ]);
+
+      const karmaRows = await ctx.db.execute<{ karma: number }>(sql`
+        SELECT COALESCE(SUM(v.value), 0)::int AS karma
+        FROM votes v
+        WHERE (v.target_type = 'interpretation'
+                AND v.target_id IN (SELECT id FROM interpretations WHERE author_id = ${userId}))
+           OR (v.target_type = 'comment'
+                AND v.target_id IN (SELECT id FROM comments WHERE author_id = ${userId}))
+      `);
+      const karma = Number(karmaRows[0]?.karma ?? 0);
+
+      const topInterp = await ctx.db.query.interpretations.findFirst({
+        where: eq(interpretations.authorId, userId),
+        orderBy: [desc(interpretations.score)],
+        with: {
+          entity: { columns: { id: true, slug: true, title: true } },
+          theory: { columns: { id: true, slug: true, name: true } },
+          theoryObject: {
+            columns: {
+              id: true,
+              slug: true,
+              name: true,
+              metadata: true,
+            },
+          },
+        },
+      });
+
+      const controversial = await ctx.db.query.interpretations.findFirst({
+        where: eq(interpretations.authorId, userId),
+        orderBy: [
+          desc(
+            sql`${interpretations.votesUp} * ${interpretations.votesDown}`,
+          ),
+        ],
+        with: {
+          entity: { columns: { id: true, slug: true, title: true } },
+          theory: { columns: { id: true, slug: true, name: true } },
+          theoryObject: {
+            columns: {
+              id: true,
+              slug: true,
+              name: true,
+              metadata: true,
+            },
+          },
+        },
+      });
+
+      const objectStats = await ctx.db
+        .select({
+          theoryObjectId: interpretations.theoryObjectId,
+          c: count(),
+        })
+        .from(interpretations)
+        .where(eq(interpretations.authorId, userId))
+        .groupBy(interpretations.theoryObjectId)
+        .orderBy(desc(count()))
+        .limit(3);
+
+      const favoriteObjects = await Promise.all(
+        objectStats.map(async (s) => {
+          const obj = await ctx.db.query.theoryObjects.findFirst({
+            where: eq(theoryObjects.id, s.theoryObjectId),
+            with: {
+              theory: { columns: { slug: true, name: true } },
+            },
+          });
+          if (!obj) return null;
+          return {
+            id: obj.id,
+            slug: obj.slug,
+            name: obj.name,
+            metadata: obj.metadata as Record<string, unknown> | null,
+            theory: obj.theory
+              ? { slug: obj.theory.slug, name: obj.theory.name }
+              : null,
+            count: Number(s.c),
+          };
+        }),
+      );
+
+      const theoryStats = await ctx.db
+        .select({
+          theoryId: interpretations.theoryId,
+          c: count(),
+        })
+        .from(interpretations)
+        .where(eq(interpretations.authorId, userId))
+        .groupBy(interpretations.theoryId)
+        .orderBy(desc(count()))
+        .limit(1);
+
+      let favoriteTheory: {
+        slug: string;
+        name: string;
+        count: number;
+      } | null = null;
+      if (theoryStats.length > 0) {
+        const t = await ctx.db.query.theories.findFirst({
+          where: eq(theories.id, theoryStats[0]!.theoryId),
+          columns: { slug: true, name: true },
+        });
+        if (t) {
+          favoriteTheory = {
+            slug: t.slug,
+            name: t.name,
+            count: Number(theoryStats[0]!.c),
+          };
+        }
+      }
+
+      const recentInterpretations = await ctx.db.query.interpretations.findMany({
+        where: eq(interpretations.authorId, userId),
+        orderBy: [desc(interpretations.createdAt)],
+        limit: 10,
+        with: {
+          entity: { columns: { slug: true, title: true } },
+          theory: { columns: { slug: true, name: true } },
+          theoryObject: {
+            columns: { slug: true, name: true, metadata: true },
+          },
+        },
+      });
+
+      const userTheories = await ctx.db.query.theories.findMany({
+        where: eq(theories.authorId, userId),
+        columns: { id: true, slug: true, name: true, description: true },
+        with: { forks: { columns: { id: true } } },
+        limit: 5,
+      });
+
+      return {
+        user: {
+          id: user.id,
+          username: user.username ?? "",
+          name: user.name ?? "",
+          image: user.image ?? null,
+          createdAt: user.createdAt,
+        },
+        karma,
+        counters: {
+          interpretations: Number(counters.interpretations),
+          comments: Number(counters.comments),
+          entities: Number(counters.entities),
+          theories: Number(counters.theories),
+        },
+        topInterpretation: topInterp
+          ? {
+              id: topInterp.id,
+              score: topInterp.score,
+              votesUp: topInterp.votesUp,
+              votesDown: topInterp.votesDown,
+              body: topInterp.body,
+              entity: topInterp.entity,
+              theory: topInterp.theory,
+              theoryObject: topInterp.theoryObject
+                ? {
+                    id: topInterp.theoryObject.id,
+                    slug: topInterp.theoryObject.slug,
+                    name: topInterp.theoryObject.name,
+                    metadata: topInterp.theoryObject.metadata as
+                      | Record<string, unknown>
+                      | null,
+                  }
+                : null,
+            }
+          : null,
+        controversialInterpretation:
+          controversial &&
+          controversial.id !== topInterp?.id &&
+          controversial.votesUp > 0 &&
+          controversial.votesDown > 0
+            ? {
+                id: controversial.id,
+                score: controversial.score,
+                votesUp: controversial.votesUp,
+                votesDown: controversial.votesDown,
+                body: controversial.body,
+                entity: controversial.entity,
+                theory: controversial.theory,
+                theoryObject: controversial.theoryObject
+                  ? {
+                      id: controversial.theoryObject.id,
+                      slug: controversial.theoryObject.slug,
+                      name: controversial.theoryObject.name,
+                      metadata: controversial.theoryObject.metadata as
+                        | Record<string, unknown>
+                        | null,
+                    }
+                  : null,
+              }
+            : null,
+        favoriteObjects: favoriteObjects.filter(
+          (x): x is NonNullable<typeof x> => x !== null,
+        ),
+        favoriteTheory,
+        recentInterpretations: recentInterpretations.map((i) => ({
+          id: i.id,
+          body: i.body,
+          score: i.score,
+          createdAt: i.createdAt,
+          entity: i.entity,
+          theory: i.theory,
+          theoryObject: i.theoryObject
+            ? {
+                slug: i.theoryObject.slug,
+                name: i.theoryObject.name,
+                metadata: i.theoryObject.metadata as
+                  | Record<string, unknown>
+                  | null,
+              }
+            : null,
+        })),
+        theoriesAuthored: userTheories.map((t) => ({
+          id: t.id,
+          slug: t.slug,
+          name: t.name,
+          description: t.description ?? "",
+          forkCount: t.forks.length,
+        })),
+      };
+    }),
+});

@@ -107,6 +107,26 @@ export type Dictionary = {
     create: string;
     loginToAdd: string;
   };
+  profile: {
+    joined: string;
+    karma: string;
+    interpretations: string;
+    comments: string;
+    entities: string;
+    theories: string;
+    topInterpretation: string;
+    controversialInterpretation: string;
+    favoriteObjects: string;
+    favoriteTheory: string;
+    recentInterpretations: string;
+    theoriesAuthored: string;
+    noInterpretations: string;
+    noTheories: string;
+    notFound: string;
+    inEntity: string;
+    inTheory: string;
+    forks: string;
+  };
   health: {
     label: string;
     stub: string;
@@ -228,6 +248,26 @@ const ru: Dictionary = {
     create: "Создать",
     loginToAdd: "Войди чтобы добавить сущность",
   },
+  profile: {
+    joined: "с нами с",
+    karma: "карма",
+    interpretations: "интерпретаций",
+    comments: "комментариев",
+    entities: "сущностей",
+    theories: "теорий",
+    topInterpretation: "Топ-интерпретация",
+    controversialInterpretation: "Самая спорная",
+    favoriteObjects: "Любимые объекты теории",
+    favoriteTheory: "Любимая теория",
+    recentInterpretations: "Недавние интерпретации",
+    theoriesAuthored: "Авторские теории",
+    noInterpretations: "Пока нет интерпретаций.",
+    noTheories: "Авторских теорий пока нет.",
+    notFound: "Пользователь не найден.",
+    inEntity: "о сущности",
+    inTheory: "в теории",
+    forks: "форков",
+  },
   health: {
     label: "Состояние сервера",
     stub: "Stub-режим: данные из mock-слоя, БД не подключена.",
@@ -348,6 +388,26 @@ const en: Dictionary = {
     descriptionHint: "Minimum 20 characters. Plain meaning, no typing.",
     create: "Create",
     loginToAdd: "Sign in to add an entity",
+  },
+  profile: {
+    joined: "joined",
+    karma: "karma",
+    interpretations: "interpretations",
+    comments: "comments",
+    entities: "entities",
+    theories: "theories",
+    topInterpretation: "Top interpretation",
+    controversialInterpretation: "Most controversial",
+    favoriteObjects: "Favorite theory objects",
+    favoriteTheory: "Favorite theory",
+    recentInterpretations: "Recent interpretations",
+    theoriesAuthored: "Authored theories",
+    noInterpretations: "No interpretations yet.",
+    noTheories: "No authored theories yet.",
+    notFound: "User not found.",
+    inEntity: "on entity",
+    inTheory: "in theory",
+    forks: "forks",
   },
   health: {
     label: "Server status",
