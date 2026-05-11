@@ -1,11 +1,11 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { RegisterForm } from "@/components/auth/register-form";
+import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+
+export const dynamic = "force-dynamic";
 
 export default async function RegisterPage({
   params,
@@ -14,6 +14,9 @@ export default async function RegisterPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+
+  const session = await auth();
+  if (session?.user) redirect(`/${lang}`);
 
   const dict = getDictionary(lang);
 
@@ -28,44 +31,8 @@ export default async function RegisterPage({
             {dict.auth.registerSubtitle}
           </p>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <form className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">{dict.auth.email}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                disabled
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password">{dict.auth.password}</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                disabled
-              />
-            </div>
-            <Button type="button" disabled className="w-full">
-              {dict.auth.submitRegister}
-            </Button>
-          </form>
-
-          <p className="text-xs text-muted-foreground text-center leading-relaxed">
-            {dict.auth.placeholder}
-          </p>
-
-          <p className="text-sm text-center text-muted-foreground">
-            {dict.auth.haveAccount}{" "}
-            <Link
-              href={`/${lang}/login`}
-              className="text-foreground underline underline-offset-4 hover:opacity-80"
-            >
-              {dict.nav.login}
-            </Link>
-          </p>
+        <CardContent>
+          <RegisterForm lang={lang} dict={dict} />
         </CardContent>
       </Card>
     </div>

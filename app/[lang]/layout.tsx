@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDictionary } from "@/lib/i18n/dictionaries";
+import { UserMenu } from "@/components/auth/user-menu";
+import { auth } from "@/lib/auth/auth";
 import { isLocale, locales } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
@@ -18,6 +20,7 @@ export default async function LocaleLayout({
   if (!isLocale(lang)) notFound();
 
   const dict = getDictionary(lang);
+  const session = await auth();
   const otherLang = lang === "ru" ? "en" : "ru";
 
   return (
@@ -46,12 +49,33 @@ export default async function LocaleLayout({
             >
               {otherLang}
             </Link>
-            <Link
-              href={`/${lang}/login`}
-              className="text-foreground hover:opacity-80 transition-opacity"
-            >
-              {dict.nav.login}
-            </Link>
+            {session?.user ? (
+              <UserMenu
+                lang={lang}
+                dict={dict}
+                user={{
+                  username:
+                    (session.user as { username?: string }).username ?? null,
+                  name: session.user.name ?? null,
+                  image: session.user.image ?? null,
+                }}
+              />
+            ) : (
+              <>
+                <Link
+                  href={`/${lang}/login`}
+                  className="text-foreground hover:opacity-80 transition-opacity"
+                >
+                  {dict.nav.login}
+                </Link>
+                <Link
+                  href={`/${lang}/register`}
+                  className="rounded-md bg-foreground text-background px-3 py-1.5 hover:opacity-90 transition-opacity"
+                >
+                  {dict.nav.register}
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>

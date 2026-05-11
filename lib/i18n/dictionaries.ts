@@ -66,6 +66,11 @@ export type Dictionary = {
     registerSubtitle: string;
     email: string;
     password: string;
+    passwordHint: string;
+    username: string;
+    usernameHint: string;
+    displayName: string;
+    optional: string;
     submitLogin: string;
     submitRegister: string;
     or: string;
@@ -73,6 +78,9 @@ export type Dictionary = {
     haveAccount: string;
     noAccount: string;
     placeholder: string;
+    invalidCredentials: string;
+    registeredButLoginFailed: string;
+    logout: string;
   };
   health: {
     label: string;
@@ -157,13 +165,22 @@ const ru: Dictionary = {
     registerSubtitle: "Создайте аккаунт, чтобы публиковать интерпретации.",
     email: "Email",
     password: "Пароль",
+    passwordHint: "Минимум 8 символов.",
+    username: "Username",
+    usernameHint: "Латиница, цифры и _, 3–32 символа.",
+    displayName: "Имя для отображения",
+    optional: "необязательно",
     submitLogin: "Войти",
     submitRegister: "Создать аккаунт",
     or: "или",
     google: "Войти через Google",
     haveAccount: "Уже есть аккаунт?",
     noAccount: "Нет аккаунта?",
-    placeholder: "Это визуальная заглушка. Реальная авторизация подключится после настройки .env.",
+    placeholder: "",
+    invalidCredentials: "Неверный email или пароль",
+    registeredButLoginFailed:
+      "Аккаунт создан, но войти не удалось. Попробуй на странице входа.",
+    logout: "Выйти",
   },
   health: {
     label: "Состояние сервера",
@@ -242,13 +259,22 @@ const en: Dictionary = {
     registerSubtitle: "Create an account to publish interpretations.",
     email: "Email",
     password: "Password",
+    passwordHint: "Minimum 8 characters.",
+    username: "Username",
+    usernameHint: "Letters, digits, and _, 3–32 characters.",
+    displayName: "Display name",
+    optional: "optional",
     submitLogin: "Sign in",
     submitRegister: "Create account",
     or: "or",
     google: "Sign in with Google",
     haveAccount: "Already have an account?",
     noAccount: "No account?",
-    placeholder: "Visual placeholder. Real auth wires up after .env is configured.",
+    placeholder: "",
+    invalidCredentials: "Wrong email or password",
+    registeredButLoginFailed:
+      "Account created, but sign-in failed. Try the sign-in page.",
+    logout: "Sign out",
   },
   health: {
     label: "Server status",
