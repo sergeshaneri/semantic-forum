@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { interpretationsCount } from "@/lib/i18n/formatters";
 import type { Locale } from "@/lib/i18n/config";
 
 type Props = {
@@ -30,7 +31,7 @@ export function EntityCard({ lang, dict, entity }: Props) {
               {kindLabel}
             </Badge>
             <span className="text-xs text-muted-foreground font-mono">
-              {dict.entities.interpretationsCount(entity.interpretationCount)}
+              {interpretationsCount(entity.interpretationCount, lang)}
             </span>
           </div>
           <h3 className="font-heading text-2xl tracking-tight group-hover:underline underline-offset-4 decoration-1">

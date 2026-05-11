@@ -22,7 +22,6 @@ export type Dictionary = {
     subtitle: string;
     kindWord: string;
     kindPerson: string;
-    interpretationsCount: (n: number) => string;
     addNew: string;
     tags: string;
     backToList: string;
@@ -34,7 +33,6 @@ export type Dictionary = {
     fork: string;
     parent: string;
     seed: string;
-    objectsCount: (n: number) => string;
     interpretationsInTheory: string;
     objectsTitle: string;
   };
@@ -113,14 +111,6 @@ const ru: Dictionary = {
       "Слова, понятия и личности, которые сообщество интерпретирует в рамках разных теорий.",
     kindWord: "Слово",
     kindPerson: "Личность",
-    interpretationsCount: (n: number) => {
-      const last = n % 10;
-      const lastTwo = n % 100;
-      if (lastTwo >= 11 && lastTwo <= 14) return `${n} интерпретаций`;
-      if (last === 1) return `${n} интерпретация`;
-      if (last >= 2 && last <= 4) return `${n} интерпретации`;
-      return `${n} интерпретаций`;
-    },
     addNew: "Добавить сущность",
     tags: "Теги",
     backToList: "← Ко всем сущностям",
@@ -133,7 +123,6 @@ const ru: Dictionary = {
     fork: "Форкнуть теорию",
     parent: "Родительская теория",
     seed: "Сид",
-    objectsCount: (n: number) => `${n} объектов`,
     interpretationsInTheory: "интерпретаций в этой теории",
     objectsTitle: "Объекты теории",
   },
@@ -213,8 +202,6 @@ const en: Dictionary = {
       "Words, concepts, and people the community interprets through different theories.",
     kindWord: "Word",
     kindPerson: "Person",
-    interpretationsCount: (n: number) =>
-      n === 1 ? `${n} interpretation` : `${n} interpretations`,
     addNew: "Add entity",
     tags: "Tags",
     backToList: "← Back to entities",
@@ -227,7 +214,6 @@ const en: Dictionary = {
     fork: "Fork theory",
     parent: "Parent theory",
     seed: "Seed",
-    objectsCount: (n: number) => `${n} objects`,
     interpretationsInTheory: "interpretations in this theory",
     objectsTitle: "Theory objects",
   },

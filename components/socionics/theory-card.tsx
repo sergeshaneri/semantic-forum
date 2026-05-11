@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { objectsCount } from "@/lib/i18n/formatters";
 import type { Locale } from "@/lib/i18n/config";
 
 type Props = {
@@ -36,7 +37,7 @@ export function TheoryCard({ lang, dict, theory }: Props) {
               </Badge>
             )}
             <span className="ml-auto text-xs text-muted-foreground font-mono">
-              {dict.theories.objectsCount(theory.objectCount)} ·{" "}
+              {objectsCount(theory.objectCount, lang)} ·{" "}
               {theory.forkCount} {dict.theories.forks}
             </span>
           </div>

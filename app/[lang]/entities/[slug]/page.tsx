@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { InterpretationCard } from "@/components/socionics/interpretation-card";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpretationsCount } from "@/lib/i18n/formatters";
 import { api } from "@/lib/trpc/server";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +69,7 @@ export default async function EntityPage({
         <div className="flex items-end justify-between gap-4 flex-wrap">
           <div>
             <h2 className="font-heading text-2xl font-semibold tracking-tight">
-              {dict.entities.interpretationsCount(interpretations.length)}
+              {interpretationsCount(interpretations.length, lang)}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               {dict.interpretation.filterByTheory}: {dict.interpretation.allTheories}
