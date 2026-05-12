@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { FollowButton } from "@/components/socionics/follow-button";
 import { ProfileEditActions } from "@/components/socionics/profile-actions";
+import { ProfileProducts } from "@/components/socionics/profile-products";
+import { ProfilePublications } from "@/components/socionics/profile-publications";
 import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -18,6 +21,18 @@ function getSymbol(metadata: Record<string, unknown> | null | undefined) {
   }
   return null;
 }
+
+const LINK_KIND_LABELS_RU: Record<string, string> = {
+  website: "Сайт",
+  telegram: "Telegram",
+  youtube: "YouTube",
+  instagram: "Instagram",
+  twitter: "X",
+  vk: "VK",
+  linkedin: "LinkedIn",
+  github: "GitHub",
+  other: "Ссылка",
+};
 
 export default async function UserProfilePage({
   params,
@@ -40,6 +55,7 @@ export default async function UserProfilePage({
 
   const {
     user,
+    links,
     isSelf,
     viewerIsFollowing,
     karma,
@@ -51,6 +67,11 @@ export default async function UserProfilePage({
     recentInterpretations,
     theoriesAuthored,
   } = data;
+
+  const [publications, products] = await Promise.all([
+    api.publication.list({ language: lang, authorId: user.id, limit: 50 }),
+    api.product.list({ language: lang, ownerId: user.id, limit: 50 }),
+  ]);
 
   const initial = (user.username[0] ?? "u").toUpperCase();
   const joined = new Date(user.createdAt).toLocaleDateString(
@@ -73,13 +94,22 @@ export default async function UserProfilePage({
             initial
           )}
         </div>
-        <div className="space-y-1 flex-1 min-w-0">
+        <div className="space-y-2 flex-1 min-w-0">
           <h1 className="font-heading text-3xl font-semibold tracking-tight">
             {user.name || `@${user.username}`}
           </h1>
           <p className="text-sm text-muted-foreground">
             @{user.username} · {dict.profile.joined} {joined}
           </p>
+          {user.roles.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {user.roles.map((r) => (
+                <Badge key={r} variant="outline" className="text-xs font-normal">
+                  {r}
+                </Badge>
+              ))}
+            </div>
+          )}
           {user.bio ? (
             <p className="text-sm text-foreground/80 max-w-2xl pt-2 whitespace-pre-line">
               {user.bio}
@@ -89,8 +119,26 @@ export default async function UserProfilePage({
               {dict.profile.bioEmpty}
             </p>
           ) : null}
+          {links.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-2">
+              {links.map((l) => (
+                <a
+                  key={l.id}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs rounded-md border border-border px-2 py-1 hover:bg-muted transition-colors inline-flex items-center gap-1.5"
+                >
+                  <span className="text-muted-foreground">
+                    {LINK_KIND_LABELS_RU[l.kind] ?? l.kind}:
+                  </span>
+                  <span className="font-medium">{l.label}</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div>
           {isSelf ? (
             <ProfileEditActions
               user={{
@@ -98,7 +146,9 @@ export default async function UserProfilePage({
                 name: user.name,
                 bio: user.bio,
                 image: user.image,
+                roles: user.roles,
               }}
+              links={links}
               dict={dict}
             />
           ) : (
@@ -182,6 +232,26 @@ export default async function UserProfilePage({
         </section>
       )}
 
+      <Separator />
+
+      <ProfilePublications
+        username={user.username}
+        isSelf={isSelf}
+        publications={publications}
+        lang={lang}
+        dict={dict}
+      />
+
+      <ProfileProducts
+        username={user.username}
+        isSelf={isSelf}
+        products={products}
+        lang={lang}
+        dict={dict}
+      />
+
+      <Separator />
+
       {topInterpretation && (
         <section className="space-y-3">
           <h2 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
@@ -203,8 +273,6 @@ export default async function UserProfilePage({
           />
         </section>
       )}
-
-      <Separator />
 
       {theoriesAuthored.length > 0 && (
         <section className="space-y-3">

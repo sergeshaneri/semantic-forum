@@ -15,6 +15,35 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
+export const publicationKindEnum = pgEnum("publication_kind", [
+  "article",
+  "video",
+]);
+export const productKindEnum = pgEnum("product_kind", [
+  "course",
+  "consultation",
+  "book",
+  "typing",
+  "workshop",
+  "other",
+]);
+export const linkKindEnum = pgEnum("link_kind", [
+  "website",
+  "telegram",
+  "youtube",
+  "instagram",
+  "twitter",
+  "vk",
+  "linkedin",
+  "github",
+  "other",
+]);
+export const refTargetEnum = pgEnum("ref_target", [
+  "entity",
+  "theory",
+  "theory_object",
+]);
+
 export const langEnum = pgEnum("lang", ["ru", "en"]);
 export const entityKindEnum = pgEnum("entity_kind", ["word", "person"]);
 export const theoryObjectKindEnum = pgEnum("theory_object_kind", [
@@ -50,9 +79,102 @@ export const users = pgTable("users", {
   name: varchar("name", { length: 128 }),
   image: text("image"),
   bio: text("bio"),
+  roles: jsonb("roles").$type<string[]>().default([]).notNull(),
   passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const userLinks = pgTable(
+  "user_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: linkKindEnum("kind").notNull(),
+    label: varchar("label", { length: 100 }).notNull(),
+    url: varchar("url", { length: 500 }).notNull(),
+    position: integer("position").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+);
+
+export const publications = pgTable(
+  "publications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: publicationKindEnum("kind").notNull(),
+    title: varchar("title", { length: 300 }).notNull(),
+    slug: varchar("slug", { length: 200 }).notNull(),
+    body: text("body").notNull(),
+    externalUrl: varchar("external_url", { length: 500 }),
+    language: langEnum("language").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
+  },
+  (t) => [uniqueIndex("publications_author_slug_idx").on(t.authorId, t.slug)],
+);
+
+export const publicationTags = pgTable(
+  "publication_tags",
+  {
+    publicationId: uuid("publication_id")
+      .notNull()
+      .references(() => publications.id, { onDelete: "cascade" }),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.publicationId, t.tagId] })],
+);
+
+export const publicationReferences = pgTable("publication_references", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  publicationId: uuid("publication_id")
+    .notNull()
+    .references(() => publications.id, { onDelete: "cascade" }),
+  targetType: refTargetEnum("target_type").notNull(),
+  targetId: uuid("target_id").notNull(),
+  note: varchar("note", { length: 200 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const products = pgTable("products", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: text("owner_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  kind: productKindEnum("kind").notNull(),
+  title: varchar("title", { length: 300 }).notNull(),
+  description: text("description").notNull(),
+  priceCents: integer("price_cents"),
+  currency: varchar("currency", { length: 3 }),
+  url: varchar("url", { length: 500 }),
+  language: langEnum("language").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const productReviews = pgTable(
+  "product_reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rating: smallint("rating").notNull(),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
+  },
+  (t) => [uniqueIndex("product_reviews_uniq_idx").on(t.productId, t.authorId)],
+);
 
 export const follows = pgTable(
   "follows",
@@ -306,6 +428,57 @@ export const usersRelations = relations(users, ({ many }) => ({
   votes: many(votes),
   followers: many(follows, { relationName: "userFollowing" }),
   following: many(follows, { relationName: "userFollower" }),
+  links: many(userLinks),
+  publications: many(publications),
+  products: many(products),
+  reviewsWritten: many(productReviews),
+}));
+
+export const userLinksRelations = relations(userLinks, ({ one }) => ({
+  user: one(users, { fields: [userLinks.userId], references: [users.id] }),
+}));
+
+export const publicationsRelations = relations(publications, ({ one, many }) => ({
+  author: one(users, {
+    fields: [publications.authorId],
+    references: [users.id],
+  }),
+  tags: many(publicationTags),
+  references: many(publicationReferences),
+}));
+
+export const publicationTagsRelations = relations(publicationTags, ({ one }) => ({
+  publication: one(publications, {
+    fields: [publicationTags.publicationId],
+    references: [publications.id],
+  }),
+  tag: one(tags, { fields: [publicationTags.tagId], references: [tags.id] }),
+}));
+
+export const publicationReferencesRelations = relations(
+  publicationReferences,
+  ({ one }) => ({
+    publication: one(publications, {
+      fields: [publicationReferences.publicationId],
+      references: [publications.id],
+    }),
+  }),
+);
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  owner: one(users, { fields: [products.ownerId], references: [users.id] }),
+  reviews: many(productReviews),
+}));
+
+export const productReviewsRelations = relations(productReviews, ({ one }) => ({
+  product: one(products, {
+    fields: [productReviews.productId],
+    references: [products.id],
+  }),
+  author: one(users, {
+    fields: [productReviews.authorId],
+    references: [users.id],
+  }),
 }));
 
 export const followsRelations = relations(follows, ({ one }) => ({

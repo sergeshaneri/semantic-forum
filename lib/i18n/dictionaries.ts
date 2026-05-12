@@ -153,6 +153,60 @@ export type Dictionary = {
     follow: string;
     unfollow: string;
     bioEmpty: string;
+    rolesTitle: string;
+    rolesHint: string;
+    rolesCustomPlaceholder: string;
+    manageLinks: string;
+    addLink: string;
+    linksClose: string;
+    linkLabelPlaceholder: string;
+    linksTitle: string;
+  };
+  publications: {
+    title: string;
+    addButton: string;
+    empty: string;
+    kindArticle: string;
+    kindVideo: string;
+    formTitle: string;
+    videoUrl: string;
+    videoHint: string;
+    bodyArticle: string;
+    bodyVideoDescription: string;
+    tags: string;
+    tagsPlaceholder: string;
+    tagsHint: string;
+    publish: string;
+    backToProfile: string;
+    referencesTitle: string;
+  };
+  products: {
+    title: string;
+    addButton: string;
+    empty: string;
+    kindLabel: string;
+    formTitle: string;
+    description: string;
+    price: string;
+    priceHint: string;
+    priceOnRequest: string;
+    currency: string;
+    url: string;
+    urlHint: string;
+    publish: string;
+    reviewsCount: string;
+    reviewsTitle: string;
+    leaveReview: string;
+    yourReview: string;
+    reviewPlaceholder: string;
+    publishReview: string;
+    loginToReview: string;
+    ownerNoReview: string;
+    backToProfile: string;
+    kinds: Record<
+      "course" | "consultation" | "book" | "typing" | "workshop" | "other",
+      string
+    >;
   };
   addTheory: {
     button: string;
@@ -386,6 +440,66 @@ const ru: Dictionary = {
     follow: "Подписаться",
     unfollow: "Отписаться",
     bioEmpty: "Биография не заполнена.",
+    rolesTitle: "Роли",
+    rolesHint:
+      "Выбери одну или несколько. Можно добавить своё. До 8 ролей.",
+    rolesCustomPlaceholder: "Своя роль...",
+    manageLinks: "Управлять ссылками",
+    addLink: "Добавить",
+    linksClose: "Готово",
+    linkLabelPlaceholder: "Подпись (например: Мой канал)",
+    linksTitle: "Ссылки",
+  },
+  publications: {
+    title: "Публикации",
+    addButton: "Опубликовать",
+    empty: "Публикаций пока нет.",
+    kindArticle: "Статья",
+    kindVideo: "Видео",
+    formTitle: "Название",
+    videoUrl: "Ссылка на видео",
+    videoHint: "YouTube, Vimeo, RuTube — любая публичная ссылка.",
+    bodyArticle: "Текст статьи",
+    bodyVideoDescription: "Описание видео",
+    tags: "Теги",
+    tagsPlaceholder: "социалика, типирование, бэ",
+    tagsHint: "Через запятую. Создаются автоматически.",
+    publish: "Опубликовать",
+    backToProfile: "← К автору",
+    referencesTitle: "Связано с",
+  },
+  products: {
+    title: "Услуги и продукты",
+    addButton: "Добавить продукт",
+    empty: "Продуктов пока нет.",
+    kindLabel: "Тип",
+    formTitle: "Название",
+    description: "Описание",
+    price: "Цена",
+    priceHint:
+      "В рублях/долларах и т.д. Десятичные через точку. Оставь пустым для «по запросу».",
+    priceOnRequest: "По запросу",
+    currency: "Валюта",
+    url: "Ссылка для заказа",
+    urlHint: "Сайт записи / форма / мессенджер.",
+    publish: "Опубликовать",
+    reviewsCount: "отзывов",
+    reviewsTitle: "Отзывы",
+    leaveReview: "Оставить отзыв",
+    yourReview: "Твой отзыв",
+    reviewPlaceholder: "Опиши свой опыт работы с этим автором/продуктом...",
+    publishReview: "Опубликовать отзыв",
+    loginToReview: "Войди чтобы оставить отзыв",
+    ownerNoReview: "Свой продукт нельзя оценивать.",
+    backToProfile: "← К автору",
+    kinds: {
+      course: "Курс",
+      consultation: "Консультация",
+      book: "Книга",
+      typing: "Типирование",
+      workshop: "Воркшоп",
+      other: "Другое",
+    },
   },
   addTheory: {
     button: "Создать теорию",
@@ -620,6 +734,65 @@ const en: Dictionary = {
     follow: "Follow",
     unfollow: "Unfollow",
     bioEmpty: "Bio not filled in.",
+    rolesTitle: "Roles",
+    rolesHint: "Pick one or more. You can add a custom one. Up to 8.",
+    rolesCustomPlaceholder: "Custom role...",
+    manageLinks: "Manage links",
+    addLink: "Add",
+    linksClose: "Done",
+    linkLabelPlaceholder: "Label (e.g. My channel)",
+    linksTitle: "Links",
+  },
+  publications: {
+    title: "Publications",
+    addButton: "Publish",
+    empty: "No publications yet.",
+    kindArticle: "Article",
+    kindVideo: "Video",
+    formTitle: "Title",
+    videoUrl: "Video URL",
+    videoHint: "YouTube, Vimeo — any public link.",
+    bodyArticle: "Article body",
+    bodyVideoDescription: "Video description",
+    tags: "Tags",
+    tagsPlaceholder: "socionics, typing, white-ethics",
+    tagsHint: "Comma-separated. Created automatically.",
+    publish: "Publish",
+    backToProfile: "← Back to author",
+    referencesTitle: "Linked with",
+  },
+  products: {
+    title: "Services and products",
+    addButton: "Add product",
+    empty: "No products yet.",
+    kindLabel: "Kind",
+    formTitle: "Title",
+    description: "Description",
+    price: "Price",
+    priceHint:
+      "Decimal point allowed. Leave empty for 'on request'.",
+    priceOnRequest: "On request",
+    currency: "Currency",
+    url: "Booking URL",
+    urlHint: "Booking page, form, or messenger.",
+    publish: "Publish",
+    reviewsCount: "reviews",
+    reviewsTitle: "Reviews",
+    leaveReview: "Leave a review",
+    yourReview: "Your review",
+    reviewPlaceholder: "Describe your experience with this product...",
+    publishReview: "Publish review",
+    loginToReview: "Sign in to leave a review",
+    ownerNoReview: "Can't review your own product.",
+    backToProfile: "← Back to author",
+    kinds: {
+      course: "Course",
+      consultation: "Consultation",
+      book: "Book",
+      typing: "Typing session",
+      workshop: "Workshop",
+      other: "Other",
+    },
   },
   addTheory: {
     button: "Create theory",

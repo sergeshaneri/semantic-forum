@@ -28,7 +28,11 @@ export const userRouter = createTRPCRouter({
           name: true,
           image: true,
           bio: true,
+          roles: true,
           createdAt: true,
+        },
+        with: {
+          links: true,
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
@@ -195,8 +199,15 @@ export const userRouter = createTRPCRouter({
           name: user.name ?? "",
           image: user.image ?? null,
           bio: user.bio ?? "",
+          roles: (user.roles ?? []) as string[],
           createdAt: user.createdAt,
         },
+        links: user.links.map((l) => ({
+          id: l.id,
+          kind: l.kind,
+          label: l.label,
+          url: l.url,
+        })),
         isSelf: viewerId === userId,
         viewerIsFollowing,
         karma,
@@ -291,6 +302,7 @@ export const userRouter = createTRPCRouter({
         name: z.string().min(1).max(128),
         bio: z.string().max(1000).optional(),
         image: z.string().url().max(500).optional().or(z.literal("")),
+        roles: z.array(z.string().min(1).max(80)).max(8).default([]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -300,6 +312,7 @@ export const userRouter = createTRPCRouter({
           name: input.name,
           bio: input.bio && input.bio.trim() ? input.bio.trim() : null,
           image: input.image && input.image.length > 0 ? input.image : null,
+          roles: input.roles,
         })
         .where(eq(users.id, ctx.userId));
       return { ok: true as const };
