@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { TheoryObjectActions } from "@/components/socionics/theory-object-actions";
+import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { api } from "@/lib/trpc/server";
@@ -37,6 +39,12 @@ export default async function TheoryObjectPage({
       ? (object.metadata as { symbol?: string }).symbol
       : null;
 
+  const session = await auth();
+  const currentUserId =
+    (session?.user as { id?: string } | undefined)?.id ?? null;
+  const isOwner =
+    currentUserId !== null && currentUserId === theory.authorId && !theory.isSeed;
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-12 space-y-10">
       <Link
@@ -57,6 +65,20 @@ export default async function TheoryObjectPage({
           >
             {theory.name}
           </Link>
+          {isOwner && (
+            <span className="ml-auto">
+              <TheoryObjectActions
+                object={{
+                  id: object.id,
+                  name: object.name,
+                  description: object.description,
+                }}
+                theorySlug={theory.slug}
+                lang={lang}
+                dict={dict}
+              />
+            </span>
+          )}
         </div>
         <div className="flex items-baseline gap-4">
           {symbol && (
@@ -74,7 +96,7 @@ export default async function TheoryObjectPage({
         <h2 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
           {dict.theoryObject.descriptionTitle}
         </h2>
-        <p className="text-lg leading-relaxed text-foreground">
+        <p className="text-lg leading-relaxed text-foreground whitespace-pre-line">
           {object.description}
         </p>
       </section>

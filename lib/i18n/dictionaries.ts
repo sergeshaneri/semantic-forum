@@ -31,6 +31,8 @@ export type Dictionary = {
     subtitle: string;
     forks: string;
     fork: string;
+    forkTitle: string;
+    forkHint: string;
     parent: string;
     seed: string;
     interpretationsInTheory: string;
@@ -128,6 +130,8 @@ export type Dictionary = {
     comments: string;
     entities: string;
     theories: string;
+    followers: string;
+    following: string;
     topInterpretation: string;
     controversialInterpretation: string;
     favoriteObjects: string;
@@ -140,6 +144,48 @@ export type Dictionary = {
     inEntity: string;
     inTheory: string;
     forks: string;
+    editButton: string;
+    displayName: string;
+    bio: string;
+    bioPlaceholder: string;
+    imageUrl: string;
+    imageHint: string;
+    follow: string;
+    unfollow: string;
+    bioEmpty: string;
+  };
+  addTheory: {
+    button: string;
+    name: string;
+    namePlaceholder: string;
+    slug: string;
+    description: string;
+    parent: string;
+    parentHint: string;
+    noParent: string;
+    copyObjects: string;
+    create: string;
+  };
+  addTheoryObject: {
+    button: string;
+    kind: string;
+    name: string;
+    slug: string;
+    description: string;
+    create: string;
+    kinds: Record<
+      | "aspect"
+      | "function_position"
+      | "type"
+      | "intertype_relation"
+      | "dichotomy"
+      | "custom",
+      string
+    >;
+  };
+  feed: {
+    title: string;
+    subtitle: string;
   };
   entityRelations: {
     title: string;
@@ -210,7 +256,10 @@ const ru: Dictionary = {
     subtitle:
       "Соционические системы и их форки. Каждая теория задаёт собственный набор объектов и их семантику.",
     forks: "форков",
-    fork: "Форкнуть теорию",
+    fork: "Форкнуть",
+    forkTitle: "Создать форк",
+    forkHint:
+      "Создаст копию теории со всеми её объектами под твоим авторством. Сможешь править описания и добавлять свои объекты.",
     parent: "Родительская теория",
     seed: "Сид",
     interpretationsInTheory: "интерпретаций в этой теории",
@@ -314,6 +363,8 @@ const ru: Dictionary = {
     comments: "комментариев",
     entities: "сущностей",
     theories: "теорий",
+    followers: "подписчиков",
+    following: "подписок",
     topInterpretation: "Топ-интерпретация",
     controversialInterpretation: "Самая спорная",
     favoriteObjects: "Любимые объекты теории",
@@ -326,6 +377,48 @@ const ru: Dictionary = {
     inEntity: "о сущности",
     inTheory: "в теории",
     forks: "форков",
+    editButton: "Редактировать профиль",
+    displayName: "Имя для отображения",
+    bio: "О себе",
+    bioPlaceholder: "Расскажи о своих интересах в соционике, своей школе, любимых теориях...",
+    imageUrl: "URL аватара",
+    imageHint: "Ссылка на картинку. Загрузка файлов появится позже.",
+    follow: "Подписаться",
+    unfollow: "Отписаться",
+    bioEmpty: "Биография не заполнена.",
+  },
+  addTheory: {
+    button: "Создать теорию",
+    name: "Название теории",
+    namePlaceholder: "Например: Информационная физика",
+    slug: "Slug (для URL)",
+    description: "Описание теории",
+    parent: "Родительская теория",
+    parentHint:
+      "Если форкаешь существующую — выбери её. Иначе создаётся теория с нуля.",
+    noParent: "С нуля (без родителя)",
+    copyObjects: "Скопировать объекты родительской теории при создании",
+    create: "Создать",
+  },
+  addTheoryObject: {
+    button: "Добавить объект",
+    kind: "Тип объекта",
+    name: "Название",
+    slug: "Slug",
+    description: "Описание",
+    create: "Создать",
+    kinds: {
+      custom: "Произвольный",
+      aspect: "Аспект",
+      function_position: "Функция-позиция",
+      type: "Тип (ТИМ)",
+      intertype_relation: "Интертипное отношение",
+      dichotomy: "Признак / дихотомия",
+    },
+  },
+  feed: {
+    title: "Лента подписок",
+    subtitle: "Последние интерпретации авторов, на которых ты подписан.",
   },
   entityRelations: {
     title: "Связи",
@@ -395,7 +488,10 @@ const en: Dictionary = {
     subtitle:
       "Socionic systems and their forks. Each theory defines its own objects and their semantics.",
     forks: "forks",
-    fork: "Fork theory",
+    fork: "Fork",
+    forkTitle: "Create a fork",
+    forkHint:
+      "Creates a copy of the theory with all its objects under your authorship. You can edit descriptions and add your own objects.",
     parent: "Parent theory",
     seed: "Seed",
     interpretationsInTheory: "interpretations in this theory",
@@ -500,6 +596,8 @@ const en: Dictionary = {
     comments: "comments",
     entities: "entities",
     theories: "theories",
+    followers: "followers",
+    following: "following",
     topInterpretation: "Top interpretation",
     controversialInterpretation: "Most controversial",
     favoriteObjects: "Favorite theory objects",
@@ -512,6 +610,49 @@ const en: Dictionary = {
     inEntity: "on entity",
     inTheory: "in theory",
     forks: "forks",
+    editButton: "Edit profile",
+    displayName: "Display name",
+    bio: "About",
+    bioPlaceholder:
+      "Tell about your interests in socionics, your school, favorite theories...",
+    imageUrl: "Avatar URL",
+    imageHint: "Link to an image. File upload will come later.",
+    follow: "Follow",
+    unfollow: "Unfollow",
+    bioEmpty: "Bio not filled in.",
+  },
+  addTheory: {
+    button: "Create theory",
+    name: "Theory name",
+    namePlaceholder: "e.g. Information Physics",
+    slug: "Slug (URL part)",
+    description: "Description",
+    parent: "Parent theory",
+    parentHint:
+      "If you're forking an existing one — pick it. Otherwise the theory is created from scratch.",
+    noParent: "From scratch (no parent)",
+    copyObjects: "Copy parent theory's objects on create",
+    create: "Create",
+  },
+  addTheoryObject: {
+    button: "Add object",
+    kind: "Object kind",
+    name: "Name",
+    slug: "Slug",
+    description: "Description",
+    create: "Create",
+    kinds: {
+      custom: "Custom",
+      aspect: "Aspect",
+      function_position: "Function position",
+      type: "Type (TIM)",
+      intertype_relation: "Intertype relation",
+      dichotomy: "Dichotomy",
+    },
+  },
+  feed: {
+    title: "Following feed",
+    subtitle: "Latest interpretations from people you follow.",
   },
   entityRelations: {
     title: "Relations",

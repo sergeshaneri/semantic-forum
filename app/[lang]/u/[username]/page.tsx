@@ -2,6 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { FollowButton } from "@/components/socionics/follow-button";
+import { ProfileEditActions } from "@/components/socionics/profile-actions";
+import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { api } from "@/lib/trpc/server";
@@ -25,6 +28,9 @@ export default async function UserProfilePage({
   if (!isLocale(lang)) notFound();
 
   const dict = getDictionary(lang);
+  const session = await auth();
+  const isAuthed = Boolean(session?.user);
+
   let data;
   try {
     data = await api.user.getProfile({ username });
@@ -34,6 +40,8 @@ export default async function UserProfilePage({
 
   const {
     user,
+    isSelf,
+    viewerIsFollowing,
     karma,
     counters,
     topInterpretation,
@@ -52,26 +60,71 @@ export default async function UserProfilePage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 space-y-10">
-      <header className="flex items-center gap-5">
-        <div className="size-20 rounded-full bg-foreground text-background flex items-center justify-center text-2xl font-semibold">
-          {initial}
+      <header className="flex items-start gap-5 flex-wrap">
+        <div className="size-20 rounded-full bg-foreground text-background flex items-center justify-center text-2xl font-semibold overflow-hidden">
+          {user.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.image}
+              alt={user.name}
+              className="size-full object-cover"
+            />
+          ) : (
+            initial
+          )}
         </div>
-        <div className="space-y-1">
+        <div className="space-y-1 flex-1 min-w-0">
           <h1 className="font-heading text-3xl font-semibold tracking-tight">
             {user.name || `@${user.username}`}
           </h1>
           <p className="text-sm text-muted-foreground">
             @{user.username} · {dict.profile.joined} {joined}
           </p>
+          {user.bio ? (
+            <p className="text-sm text-foreground/80 max-w-2xl pt-2 whitespace-pre-line">
+              {user.bio}
+            </p>
+          ) : isSelf ? (
+            <p className="text-sm text-muted-foreground/70 pt-2 italic">
+              {dict.profile.bioEmpty}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          {isSelf ? (
+            <ProfileEditActions
+              user={{
+                username: user.username,
+                name: user.name,
+                bio: user.bio,
+                image: user.image,
+              }}
+              dict={dict}
+            />
+          ) : (
+            <FollowButton
+              username={user.username}
+              initialFollowing={viewerIsFollowing}
+              dict={dict}
+              loginHref={`/${lang}/login?callbackUrl=/${lang}/u/${user.username}`}
+              isAuthed={isAuthed}
+            />
+          )}
         </div>
       </header>
 
-      <section className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <StatCell value={karma >= 0 ? `+${karma}` : `${karma}`} label={dict.profile.karma} highlight />
+      <section className="grid grid-cols-2 md:grid-cols-7 gap-3">
+        <StatCell
+          value={karma >= 0 ? `+${karma}` : `${karma}`}
+          label={dict.profile.karma}
+          highlight
+        />
         <StatCell value={counters.interpretations} label={dict.profile.interpretations} />
         <StatCell value={counters.comments} label={dict.profile.comments} />
         <StatCell value={counters.entities} label={dict.profile.entities} />
         <StatCell value={counters.theories} label={dict.profile.theories} />
+        <StatCell value={counters.followers} label={dict.profile.followers} />
+        <StatCell value={counters.following} label={dict.profile.following} />
       </section>
 
       {favoriteTheory && (

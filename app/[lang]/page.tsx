@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EntityCard } from "@/components/socionics/entity-card";
+import { FollowFeed } from "@/components/socionics/follow-feed";
 import { TheoryCard } from "@/components/socionics/theory-card";
+import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { api } from "@/lib/trpc/server";
@@ -17,6 +19,8 @@ export default async function HomePage({
   if (!isLocale(lang)) notFound();
 
   const dict = getDictionary(lang);
+  const session = await auth();
+  const isAuthed = Boolean(session?.user);
   const [popularEntities, theories] = await Promise.all([
     api.entity.popular({ language: lang, limit: 4 }),
     api.theory.list({ language: lang }),
@@ -56,6 +60,8 @@ export default async function HomePage({
           </Link>
         </div>
       </section>
+
+      {isAuthed && <FollowFeed lang={lang} dict={dict} />}
 
       <section className="space-y-5">
         <div className="flex items-end justify-between">

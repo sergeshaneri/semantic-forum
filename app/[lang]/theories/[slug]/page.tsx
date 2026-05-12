@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AddTheoryObjectForm } from "@/components/socionics/add-theory-object-form";
+import { TheoryHeaderActions } from "@/components/socionics/theory-header-actions";
+import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { api } from "@/lib/trpc/server";
@@ -39,10 +41,13 @@ const kindLabelsEn: Record<string, string> = {
 
 export default async function TheoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string; slug: string }>;
+  searchParams: Promise<{ kind?: string }>;
 }) {
   const { lang, slug } = await params;
+  const { kind: activeKind } = await searchParams;
   if (!isLocale(lang)) notFound();
 
   const dict = getDictionary(lang);
@@ -55,6 +60,16 @@ export default async function TheoryPage({
 
   const { theory, objects, interpretationCount } = data;
   const kindLabels = lang === "ru" ? kindLabelsRu : kindLabelsEn;
+  const session = await auth();
+  const isAuthed = Boolean(session?.user);
+  const currentUserId =
+    (session?.user as { id?: string } | undefined)?.id ?? null;
+  const isOwner =
+    currentUserId !== null && currentUserId === theory.authorId && !theory.isSeed;
+
+  const visibleObjects = activeKind
+    ? objects.filter((o) => o.kind === activeKind)
+    : objects;
 
   const grouped = kindOrder
     .map((kind) => ({
@@ -95,68 +110,117 @@ export default async function TheoryPage({
         </h1>
         {theory.author && (
           <p className="text-sm text-muted-foreground">
-            @{theory.author.username} · {theory.author.karma}{" "}
-            {dict.interpretation.karma}
+            <Link
+              href={`/${lang}/u/${theory.author.username}`}
+              className="hover:underline underline-offset-2"
+            >
+              @{theory.author.username}
+            </Link>{" "}
+            · {theory.author.karma} {dict.interpretation.karma}
           </p>
         )}
         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl">
           {theory.description}
         </p>
-        <div className="flex gap-3 pt-2">
-          <Button size="sm">⑂ {dict.theories.fork}</Button>
+        <div className="flex gap-3 flex-wrap items-center pt-2">
+          <TheoryHeaderActions
+            theory={{
+              id: theory.id,
+              slug: theory.slug,
+              name: theory.name,
+              description: theory.description,
+              isSeed: theory.isSeed,
+              authorId: theory.authorId,
+            }}
+            lang={lang}
+            dict={dict}
+            isAuthed={isAuthed}
+            isOwner={isOwner}
+          />
         </div>
       </header>
 
       <Separator />
 
-      <section className="space-y-8">
-        <h2 className="font-heading text-2xl font-semibold tracking-tight">
-          {dict.theories.objectsTitle}
-        </h2>
-        {grouped.map((group) => (
-          <div key={group.kind} className="space-y-3">
-            <h3 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
-              {group.label}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {group.items.map((obj) => {
-                const symbol =
-                  obj.metadata &&
-                  typeof obj.metadata === "object" &&
-                  "symbol" in obj.metadata
-                    ? (obj.metadata as { symbol?: string }).symbol
-                    : null;
-                return (
-                  <Link
-                    key={obj.id}
-                    href={`/${lang}/theories/${theory.slug}/objects/${obj.slug}`}
-                    className="contents"
-                  >
-                    <Card className="group hover:border-foreground/40 transition-colors cursor-pointer">
-                      <CardHeader className="space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          {symbol && (
-                            <span className="font-mono font-semibold text-base text-foreground">
-                              {symbol}
-                            </span>
-                          )}
-                          <h4 className="font-heading text-base font-medium group-hover:underline underline-offset-4 decoration-1">
-                            {obj.name}
-                          </h4>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                          {obj.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
+      <section className="space-y-6">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <h2 className="font-heading text-2xl font-semibold tracking-tight">
+            {dict.theories.objectsTitle}
+          </h2>
+          {isOwner && (
+            <AddTheoryObjectForm
+              theoryId={theory.id}
+              lang={lang}
+              dict={dict}
+            />
+          )}
+        </div>
+
+        {grouped.length > 1 && (
+          <div className="flex flex-wrap gap-2 text-xs">
+            <Link
+              href={`/${lang}/theories/${theory.slug}`}
+              className={`rounded-full border px-3 py-1 transition-colors ${
+                !activeKind
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border hover:bg-muted text-muted-foreground"
+              }`}
+            >
+              {dict.theories.objectsTitle.toLowerCase()} ({objects.length})
+            </Link>
+            {grouped.map((g) => (
+              <Link
+                key={g.kind}
+                href={`/${lang}/theories/${theory.slug}?kind=${g.kind}`}
+                className={`rounded-full border px-3 py-1 transition-colors ${
+                  activeKind === g.kind
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border hover:bg-muted text-muted-foreground"
+                }`}
+              >
+                {g.label} ({g.items.length})
+              </Link>
+            ))}
           </div>
-        ))}
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {visibleObjects.map((obj) => {
+            const symbol =
+              obj.metadata &&
+              typeof obj.metadata === "object" &&
+              "symbol" in obj.metadata
+                ? (obj.metadata as { symbol?: string }).symbol
+                : null;
+            return (
+              <Link
+                key={obj.id}
+                href={`/${lang}/theories/${theory.slug}/objects/${obj.slug}`}
+                className="contents"
+              >
+                <Card className="group hover:border-foreground/40 transition-colors cursor-pointer">
+                  <CardHeader className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      {symbol && (
+                        <span className="font-mono font-semibold text-base text-foreground">
+                          {symbol}
+                        </span>
+                      )}
+                      <h4 className="font-heading text-base font-medium group-hover:underline underline-offset-4 decoration-1">
+                        {obj.name}
+                      </h4>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      {obj.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
       </section>
     </div>
   );
