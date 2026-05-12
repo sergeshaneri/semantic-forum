@@ -29,6 +29,13 @@
       "when": 1778590138654,
       "tag": "0003_sturdy_ozymandias",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778590877447,
+      "tag": "0004_first_queen_noir",
+      "breakpoints": true
     }
   ]
 }

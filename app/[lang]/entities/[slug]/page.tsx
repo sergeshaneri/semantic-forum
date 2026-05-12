@@ -3,9 +3,12 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AddInterpretationForm } from "@/components/socionics/add-interpretation-form";
+import { BookmarkButton } from "@/components/socionics/bookmark-button";
 import { EntityHeaderActions } from "@/components/socionics/entity-header-actions";
 import { EntityRelations } from "@/components/socionics/entity-relations";
 import { InterpretationCard } from "@/components/socionics/interpretation-card";
+import { Markdown } from "@/components/socionics/markdown";
+import { MaterialEmbed } from "@/components/socionics/material-embed";
 import { TheoryFilter } from "@/components/socionics/theory-filter";
 import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
@@ -45,7 +48,11 @@ export default async function EntityPage({
 
   const { entity, interpretations, theoryChoices } = data;
   const kindLabel =
-    entity.kind === "word" ? dict.entities.kindWord : dict.entities.kindPerson;
+    entity.kind === "word"
+      ? dict.entities.kindWord
+      : entity.kind === "person"
+        ? dict.entities.kindPerson
+        : dict.entities.kindMaterial;
   const isEntityOwner =
     currentUserId !== null && currentUserId === entity.createdBy;
 
@@ -71,8 +78,14 @@ export default async function EntityPage({
               #{t}
             </span>
           ))}
-          {isEntityOwner && (
-            <span className="ml-auto">
+          <span className="ml-auto inline-flex items-center gap-2">
+            <BookmarkButton
+              targetType="entity"
+              targetId={entity.id}
+              isAuthed={isAuthed}
+              loginHref={`/${lang}/login?callbackUrl=/${lang}/entities/${entity.slug}`}
+            />
+            {isEntityOwner && (
               <EntityHeaderActions
                 entity={{
                   id: entity.id,
@@ -83,16 +96,35 @@ export default async function EntityPage({
                 lang={lang}
                 dict={dict}
               />
-            </span>
-          )}
+            )}
+          </span>
         </div>
         <h1 className="font-heading text-5xl font-semibold tracking-tight leading-tight">
           {entity.title}
         </h1>
-        <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          {entity.descriptionWiki}
-        </p>
       </header>
+
+      {entity.kind === "material" && entity.embedUrl && (
+        <section className="space-y-2">
+          <MaterialEmbed embedUrl={entity.embedUrl} title={entity.title} />
+          {entity.sourceUrl && (
+            <p className="text-xs text-muted-foreground">
+              <a
+                href={entity.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2"
+              >
+                {entity.sourceUrl}
+              </a>
+            </p>
+          )}
+        </section>
+      )}
+
+      <section className="space-y-3 text-foreground">
+        <Markdown>{entity.descriptionWiki}</Markdown>
+      </section>
 
       <Separator />
 

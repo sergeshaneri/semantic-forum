@@ -12,6 +12,8 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
 import { slugify } from "@/lib/slug";
 
+type Kind = "word" | "person" | "material";
+
 type Props = {
   lang: Locale;
   dict: Dictionary;
@@ -20,11 +22,13 @@ type Props = {
 export function AddEntityForm({ lang, dict }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [kind, setKind] = useState<"word" | "person">("word");
+  const [kind, setKind] = useState<Kind>("word");
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
   const [description, setDescription] = useState("");
+  const [embedUrl, setEmbedUrl] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const create = trpc.entity.create.useMutation();
@@ -44,6 +48,8 @@ export function AddEntityForm({ lang, dict }: Props) {
         slug,
         descriptionWiki: description,
         language: lang,
+        embedUrl: kind === "material" ? embedUrl : undefined,
+        sourceUrl: kind === "material" ? sourceUrl || undefined : undefined,
       });
       router.push(`/${lang}/entities/${result.slug}`);
       router.refresh();
@@ -60,14 +66,16 @@ export function AddEntityForm({ lang, dict }: Props) {
     );
   }
 
+  const kinds: Kind[] = ["word", "person", "material"];
+
   return (
     <Card>
       <CardContent className="pt-5">
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <Label>{dict.addEntity.kind}</Label>
-            <div className="flex gap-2">
-              {(["word", "person"] as const).map((k) => (
+            <div className="flex gap-2 flex-wrap">
+              {kinds.map((k) => (
                 <button
                   type="button"
                   key={k}
@@ -80,7 +88,9 @@ export function AddEntityForm({ lang, dict }: Props) {
                 >
                   {k === "word"
                     ? dict.entities.kindWord
-                    : dict.entities.kindPerson}
+                    : k === "person"
+                      ? dict.entities.kindPerson
+                      : dict.entities.kindMaterial}
                 </button>
               ))}
             </div>
@@ -95,7 +105,9 @@ export function AddEntityForm({ lang, dict }: Props) {
               placeholder={
                 kind === "word"
                   ? dict.addEntity.titleWordPlaceholder
-                  : dict.addEntity.titlePersonPlaceholder
+                  : kind === "person"
+                    ? dict.addEntity.titlePersonPlaceholder
+                    : "Например: Интервью с Гуленко (YouTube)"
               }
               maxLength={300}
               required
@@ -116,10 +128,41 @@ export function AddEntityForm({ lang, dict }: Props) {
               maxLength={80}
               required
             />
-            <p className="text-xs text-muted-foreground">
-              {dict.addEntity.slugHint}
-            </p>
           </div>
+
+          {kind === "material" && (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="embed">{dict.material.embedUrl}</Label>
+                <Input
+                  id="embed"
+                  type="url"
+                  value={embedUrl}
+                  onChange={(e) => setEmbedUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=..."
+                  maxLength={500}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  {dict.material.embedHint}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="source">{dict.material.sourceUrl}</Label>
+                <Input
+                  id="source"
+                  type="url"
+                  value={sourceUrl}
+                  onChange={(e) => setSourceUrl(e.target.value)}
+                  placeholder="https://..."
+                  maxLength={500}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {dict.material.sourceHint}
+                </p>
+              </div>
+            </>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="description">{dict.addEntity.description}</Label>
@@ -158,7 +201,13 @@ export function AddEntityForm({ lang, dict }: Props) {
             <Button
               type="submit"
               size="sm"
-              disabled={create.isPending || !title || !slug || !description}
+              disabled={
+                create.isPending ||
+                !title ||
+                !slug ||
+                !description ||
+                (kind === "material" && !embedUrl)
+              }
             >
               {create.isPending ? "..." : dict.addEntity.create}
             </Button>

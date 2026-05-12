@@ -1,12 +1,15 @@
 import { createCallerFactory, createTRPCRouter } from "./init";
 import { authRouter } from "./routers/auth";
+import { bookmarkRouter } from "./routers/bookmark";
 import { commentRouter } from "./routers/comment";
 import { entityRouter } from "./routers/entity";
 import { entityRelationRouter } from "./routers/entityRelation";
 import { healthRouter } from "./routers/health";
 import { interpretationRouter } from "./routers/interpretation";
+import { notificationRouter } from "./routers/notification";
 import { productRouter } from "./routers/product";
 import { publicationRouter } from "./routers/publication";
+import { searchRouter } from "./routers/search";
 import { theoryRouter } from "./routers/theory";
 import { theoryObjectRouter } from "./routers/theoryObject";
 import { userLinkRouter } from "./routers/userLink";
@@ -27,6 +30,9 @@ export const appRouter = createTRPCRouter({
   publication: publicationRouter,
   product: productRouter,
   vote: voteRouter,
+  notification: notificationRouter,
+  bookmark: bookmarkRouter,
+  search: searchRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -45,7 +45,26 @@ export const refTargetEnum = pgEnum("ref_target", [
 ]);
 
 export const langEnum = pgEnum("lang", ["ru", "en"]);
-export const entityKindEnum = pgEnum("entity_kind", ["word", "person"]);
+export const entityKindEnum = pgEnum("entity_kind", [
+  "word",
+  "person",
+  "material",
+]);
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "mention",
+  "reply",
+  "interpretation_voted",
+  "follow",
+  "review",
+]);
+export const bookmarkTargetEnum = pgEnum("bookmark_target", [
+  "entity",
+  "interpretation",
+  "theory",
+  "theory_object",
+  "publication",
+  "product",
+]);
 export const theoryObjectKindEnum = pgEnum("theory_object_kind", [
   "aspect",
   "function_position",
@@ -299,11 +318,41 @@ export const entities = pgTable(
     title: varchar("title", { length: 300 }).notNull(),
     slug: varchar("slug", { length: 300 }).notNull(),
     descriptionWiki: text("description_wiki"),
+    embedUrl: varchar("embed_url", { length: 500 }),
+    sourceUrl: varchar("source_url", { length: 500 }),
     language: langEnum("language").notNull(),
     createdBy: text("created_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [uniqueIndex("entities_slug_lang_idx").on(t.slug, t.language)],
+);
+
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  recipientId: text("recipient_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+  type: notificationTypeEnum("type").notNull(),
+  targetType: varchar("target_type", { length: 32 }),
+  targetId: text("target_id"),
+  url: varchar("url", { length: 500 }),
+  message: text("message"),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const bookmarks = pgTable(
+  "bookmarks",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    targetType: bookmarkTargetEnum("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.targetType, t.targetId] })],
 );
 
 export const interpretations = pgTable("interpretations", {
@@ -479,6 +528,23 @@ export const productReviewsRelations = relations(productReviews, ({ one }) => ({
     fields: [productReviews.authorId],
     references: [users.id],
   }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  recipient: one(users, {
+    fields: [notifications.recipientId],
+    references: [users.id],
+    relationName: "userNotifications",
+  }),
+  actor: one(users, {
+    fields: [notifications.actorId],
+    references: [users.id],
+    relationName: "userActedAs",
+  }),
+}));
+
+export const bookmarksRelations = relations(bookmarks, ({ one }) => ({
+  user: one(users, { fields: [bookmarks.userId], references: [users.id] }),
 }));
 
 export const followsRelations = relations(follows, ({ one }) => ({

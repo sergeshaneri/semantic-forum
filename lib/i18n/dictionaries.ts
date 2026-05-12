@@ -22,9 +22,45 @@ export type Dictionary = {
     subtitle: string;
     kindWord: string;
     kindPerson: string;
+    kindMaterial: string;
     addNew: string;
     tags: string;
     backToList: string;
+  };
+  notifications: {
+    title: string;
+    empty: string;
+    markAllRead: string;
+    seeAll: string;
+  };
+  search: {
+    placeholder: string;
+    title: string;
+    noResults: string;
+    entitiesSection: string;
+    theoriesSection: string;
+    publicationsSection: string;
+    usersSection: string;
+  };
+  material: {
+    embedUrl: string;
+    embedHint: string;
+    sourceUrl: string;
+    sourceHint: string;
+    iframeBlocked: string;
+  };
+  bookmarks: {
+    title: string;
+    empty: string;
+    types: Record<
+      | "entity"
+      | "interpretation"
+      | "theory"
+      | "theory_object"
+      | "publication"
+      | "product",
+      string
+    >;
   };
   theories: {
     title: string;
@@ -301,9 +337,45 @@ const ru: Dictionary = {
       "Слова, понятия и личности, которые сообщество интерпретирует в рамках разных теорий.",
     kindWord: "Слово",
     kindPerson: "Личность",
+    kindMaterial: "Материал",
     addNew: "Добавить сущность",
     tags: "Теги",
     backToList: "← Ко всем сущностям",
+  },
+  notifications: {
+    title: "Уведомления",
+    empty: "Уведомлений пока нет.",
+    markAllRead: "Прочитать все",
+    seeAll: "Все уведомления →",
+  },
+  search: {
+    placeholder: "Поиск...",
+    title: "Поиск",
+    noResults: "Ничего не найдено.",
+    entitiesSection: "Сущности",
+    theoriesSection: "Теории",
+    publicationsSection: "Публикации",
+    usersSection: "Люди",
+  },
+  material: {
+    embedUrl: "Ссылка для встраивания (embed URL)",
+    embedHint:
+      "YouTube, Vimeo или любая публичная страница. Для статьи это может быть ссылка на исходник, для видео — на ролик.",
+    sourceUrl: "Ссылка на источник",
+    sourceHint: "Где это опубликовано в оригинале.",
+    iframeBlocked: "Источник не разрешил встраивание. Открой по ссылке выше.",
+  },
+  bookmarks: {
+    title: "Закладки",
+    empty: "Пока нет закладок. Жми на 🔖 рядом с материалом, чтобы сохранить.",
+    types: {
+      entity: "Сущность",
+      interpretation: "Интерпретация",
+      theory: "Теория",
+      theory_object: "Объект теории",
+      publication: "Публикация",
+      product: "Продукт",
+    },
   },
   theories: {
     title: "Теории",
@@ -593,9 +665,45 @@ const en: Dictionary = {
       "Words, concepts, and people the community interprets through different theories.",
     kindWord: "Word",
     kindPerson: "Person",
+    kindMaterial: "Material",
     addNew: "Add entity",
     tags: "Tags",
     backToList: "← Back to entities",
+  },
+  notifications: {
+    title: "Notifications",
+    empty: "No notifications yet.",
+    markAllRead: "Mark all read",
+    seeAll: "See all →",
+  },
+  search: {
+    placeholder: "Search...",
+    title: "Search",
+    noResults: "No results.",
+    entitiesSection: "Entities",
+    theoriesSection: "Theories",
+    publicationsSection: "Publications",
+    usersSection: "People",
+  },
+  material: {
+    embedUrl: "Embed URL",
+    embedHint:
+      "YouTube, Vimeo, or any public page. For articles — original link; for videos — the video itself.",
+    sourceUrl: "Source URL",
+    sourceHint: "Where this is originally published.",
+    iframeBlocked: "The source did not allow embedding. Open via the link.",
+  },
+  bookmarks: {
+    title: "Bookmarks",
+    empty: "No bookmarks yet. Click 🔖 next to anything to save it.",
+    types: {
+      entity: "Entity",
+      interpretation: "Interpretation",
+      theory: "Theory",
+      theory_object: "Theory object",
+      publication: "Publication",
+      product: "Product",
+    },
   },
   theories: {
     title: "Theories",

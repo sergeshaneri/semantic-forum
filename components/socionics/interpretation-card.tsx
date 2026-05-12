@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { BookmarkButton } from "@/components/socionics/bookmark-button";
+import { Markdown } from "@/components/socionics/markdown";
 import { VoteWidget } from "@/components/socionics/vote-widget";
 import { StanceBadge, type Stance } from "@/components/socionics/stance-badge";
 import { trpc } from "@/lib/trpc/react";
@@ -146,22 +148,31 @@ export function InterpretationCard({
                   </Link>
                 </>
               )}
-              {isOwner && !editing && (
-                <span className="ml-auto inline-flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditing(true)}
-                    className="text-xs hover:text-foreground transition-colors"
-                  >
-                    {dict.actions.edit}
-                  </button>
-                  <DeleteInterpretation
-                    id={i.id}
-                    dict={dict}
-                    onDeleted={() => router.refresh()}
-                  />
-                </span>
-              )}
+              <span className="ml-auto inline-flex items-center gap-2">
+                <BookmarkButton
+                  targetType="interpretation"
+                  targetId={i.id}
+                  isAuthed={isAuthed}
+                  loginHref={loginHref}
+                  size="sm"
+                />
+                {isOwner && !editing && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(true)}
+                      className="text-xs hover:text-foreground transition-colors"
+                    >
+                      {dict.actions.edit}
+                    </button>
+                    <DeleteInterpretation
+                      id={i.id}
+                      dict={dict}
+                      onDeleted={() => router.refresh()}
+                    />
+                  </>
+                )}
+              </span>
             </div>
 
             {editing ? (
@@ -176,9 +187,9 @@ export function InterpretationCard({
                 }}
               />
             ) : (
-              <p className="text-[15px] leading-relaxed text-foreground whitespace-pre-line">
-                {i.body}
-              </p>
+              <div className="text-[15px]">
+                <Markdown>{i.body}</Markdown>
+              </div>
             )}
           </CardContent>
 

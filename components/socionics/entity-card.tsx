@@ -11,7 +11,7 @@ type Props = {
   entity: {
     slug: string;
     title: string;
-    kind: "word" | "person";
+    kind: "word" | "person" | "material";
     descriptionWiki: string;
     interpretationCount: number;
     tags: string[];
@@ -20,7 +20,11 @@ type Props = {
 
 export function EntityCard({ lang, dict, entity }: Props) {
   const kindLabel =
-    entity.kind === "word" ? dict.entities.kindWord : dict.entities.kindPerson;
+    entity.kind === "word"
+      ? dict.entities.kindWord
+      : entity.kind === "person"
+        ? dict.entities.kindPerson
+        : dict.entities.kindMaterial;
 
   return (
     <Card className="group hover:border-foreground/40 transition-colors">

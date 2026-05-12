@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NotificationBell } from "@/components/socionics/notification-bell";
+import { SearchBar } from "@/components/socionics/search-bar";
 import { UserMenu } from "@/components/auth/user-menu";
 import { auth } from "@/lib/auth/auth";
 import { isLocale, locales } from "@/lib/i18n/config";
@@ -25,12 +27,12 @@ export default async function LocaleLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-          <Link href={`/${lang}`} className="font-heading text-lg font-semibold">
+      <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur z-30">
+        <div className="mx-auto max-w-6xl px-6 py-3 flex items-center gap-4">
+          <Link href={`/${lang}`} className="font-heading text-lg font-semibold shrink-0">
             {dict.appName}
           </Link>
-          <nav className="flex items-center gap-6 text-sm">
+          <nav className="hidden md:flex items-center gap-5 text-sm">
             <Link
               href={`/${lang}/entities`}
               className="text-muted-foreground hover:text-foreground transition-colors"
@@ -43,40 +45,65 @@ export default async function LocaleLayout({
             >
               {dict.nav.theories}
             </Link>
+          </nav>
+          <div className="flex-1" />
+          <SearchBar lang={lang} dict={dict} />
+          <div className="flex items-center gap-3">
             <Link
               href={`/${otherLang}`}
-              className="text-muted-foreground hover:text-foreground transition-colors uppercase"
+              className="text-muted-foreground hover:text-foreground transition-colors uppercase text-sm"
             >
               {otherLang}
             </Link>
             {session?.user ? (
-              <UserMenu
-                lang={lang}
-                dict={dict}
-                user={{
-                  username:
-                    (session.user as { username?: string }).username ?? null,
-                  name: session.user.name ?? null,
-                  image: session.user.image ?? null,
-                }}
-              />
+              <>
+                <NotificationBell lang={lang} dict={dict} />
+                <Link
+                  href={`/${lang}/bookmarks`}
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"
+                  title={dict.bookmarks.title}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-5"
+                  >
+                    <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                </Link>
+                <UserMenu
+                  lang={lang}
+                  dict={dict}
+                  user={{
+                    username:
+                      (session.user as { username?: string }).username ?? null,
+                    name: session.user.name ?? null,
+                    image: session.user.image ?? null,
+                  }}
+                />
+              </>
             ) : (
               <>
                 <Link
                   href={`/${lang}/login`}
-                  className="text-foreground hover:opacity-80 transition-opacity"
+                  className="text-foreground hover:opacity-80 transition-opacity text-sm"
                 >
                   {dict.nav.login}
                 </Link>
                 <Link
                   href={`/${lang}/register`}
-                  className="rounded-md bg-foreground text-background px-3 py-1.5 hover:opacity-90 transition-opacity"
+                  className="rounded-md bg-foreground text-background px-3 py-1.5 hover:opacity-90 transition-opacity text-sm"
                 >
                   {dict.nav.register}
                 </Link>
               </>
             )}
-          </nav>
+          </div>
         </div>
       </header>
       <main className="flex-1">{children}</main>

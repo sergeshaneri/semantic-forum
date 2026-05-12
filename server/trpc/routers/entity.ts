@@ -19,13 +19,24 @@ const slugSchema = z
 export const entityRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
-      z.object({
-        kind: z.enum(["word", "person"]),
-        title: z.string().min(1).max(300),
-        slug: slugSchema,
-        descriptionWiki: z.string().min(20).max(3000),
-        language: langSchema,
-      }),
+      z
+        .object({
+          kind: z.enum(["word", "person", "material"]),
+          title: z.string().min(1).max(300),
+          slug: slugSchema,
+          descriptionWiki: z.string().min(20).max(3000),
+          language: langSchema,
+          embedUrl: z.string().url().max(500).optional().or(z.literal("")),
+          sourceUrl: z.string().url().max(500).optional().or(z.literal("")),
+        })
+        .refine(
+          (v) =>
+            v.kind !== "material" || (v.embedUrl && v.embedUrl.length > 0),
+          {
+            message: "Для материала нужна ссылка для embed",
+            path: ["embedUrl"],
+          },
+        ),
     )
     .mutation(async ({ ctx, input }) => {
       const existing = await ctx.db
@@ -52,6 +63,8 @@ export const entityRouter = createTRPCRouter({
           title: input.title,
           slug: input.slug,
           descriptionWiki: input.descriptionWiki,
+          embedUrl: input.embedUrl || null,
+          sourceUrl: input.sourceUrl || null,
           language: input.language,
           createdBy: ctx.userId,
         })
@@ -288,6 +301,8 @@ export const entityRouter = createTRPCRouter({
           title: entity.title,
           kind: entity.kind,
           descriptionWiki: entity.descriptionWiki ?? "",
+          embedUrl: entity.embedUrl,
+          sourceUrl: entity.sourceUrl,
           tags: [] as string[],
           createdBy: entity.createdBy,
         },
