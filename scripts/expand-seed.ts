@@ -958,9 +958,9 @@ const ALL_OBJECTS: ObjectSeed[] = [
 
 const GENERATIONS_THEORY = {
   slug: "theory-of-generations",
-  name: "Теория поколений признаков (Чурюмов–Шанери)",
+  name: "Теория поколений признаков (Чурюмов–Шанэри)",
   description:
-    "Математическое расширение Классической Модели А. Формализует её через матрицы Адамара и принцип фрактальности: 4 уровня информационной организации (Дуон → Метабон → Аспектон → Социон), иерархия признаков Рейнина по поколениям, мета-признаки. Авторство: С. Чурюмов (математический каркас), дополнение Шанери (мета-вертикаль и законы наследования).",
+    "Математическое расширение Классической Модели А. Формализует её через матрицы Адамара и принцип фрактальности: 4 уровня информационной организации (Дуон → Метабон → Аспектон → Социон), иерархия признаков Рейнина по поколениям, мета-признаки. Авторство: С. Чурюмов (математический каркас), дополнение Шанэри (мета-вертикаль и законы наследования).",
 };
 
 const GENERATIONS_OBJECTS: ObjectSeed[] = [
@@ -1009,7 +1009,7 @@ const GENERATIONS_OBJECTS: ObjectSeed[] = [
     slug: "meta-verticality",
     name: "Мета-вертикаль (Коллективизм / Индивидуализм)",
     description:
-      "Авторское дополнение Шанери: ось, отделяющая ориентированные на коллектив квадры (Альфа, Бета) от ориентированных на личность (Гамма, Дельта). Мета-признак второго порядка над квадрами.",
+      "Авторское дополнение Шанэри: ось, отделяющая ориентированные на коллектив квадры (Альфа, Бета) от ориентированных на личность (Гамма, Дельта). Мета-признак второго порядка над квадрами.",
     metadata: { meta: true, pole_a: "Коллективизм", pole_b: "Индивидуализм" },
   },
   {
@@ -1074,7 +1074,7 @@ export async function runExpandSeed() {
   );
 
   let added = 0;
-  let skipped = 0;
+  let updated = 0;
 
   for (const obj of ALL_OBJECTS) {
     const existing = await db.query.theoryObjects.findFirst({
@@ -1084,7 +1084,17 @@ export async function runExpandSeed() {
       ),
     });
     if (existing) {
-      skipped++;
+      await db
+        .update(schema.theoryObjects)
+        .set({
+          kind: obj.kind,
+          name: obj.name,
+          description: obj.description,
+          metadata: obj.metadata ?? null,
+          position: obj.position ?? 0,
+        })
+        .where(eq(schema.theoryObjects.id, existing.id));
+      updated++;
       continue;
     }
     await db.insert(schema.theoryObjects).values({
@@ -1100,9 +1110,9 @@ export async function runExpandSeed() {
     added++;
   }
 
-  console.log(`[expand-seed] classical: added=${added}, skipped=${skipped}`);
+  console.log(`[expand-seed] classical: added=${added}, updated=${updated}`);
 
-  // --- Generations theory (Чурюмов–Шанери) ---
+  // --- Generations theory (Чурюмов–Шанэри) ---
   let generationsTheory = await db.query.theories.findFirst({
     where: and(
       eq(schema.theories.slug, GENERATIONS_THEORY.slug),
@@ -1126,10 +1136,21 @@ export async function runExpandSeed() {
       .returning();
     generationsTheory = inserted!;
     console.log(`[expand-seed] created generations theory ${generationsTheory.id}`);
+  } else {
+    await db
+      .update(schema.theories)
+      .set({
+        name: GENERATIONS_THEORY.name,
+        description: GENERATIONS_THEORY.description,
+      })
+      .where(eq(schema.theories.id, generationsTheory.id));
+    console.log(
+      `[expand-seed] updated generations theory ${generationsTheory.id}`,
+    );
   }
 
   let gAdded = 0;
-  let gSkipped = 0;
+  let gUpdated = 0;
   for (const obj of GENERATIONS_OBJECTS) {
     const existing = await db.query.theoryObjects.findFirst({
       where: and(
@@ -1138,7 +1159,17 @@ export async function runExpandSeed() {
       ),
     });
     if (existing) {
-      gSkipped++;
+      await db
+        .update(schema.theoryObjects)
+        .set({
+          kind: obj.kind,
+          name: obj.name,
+          description: obj.description,
+          metadata: obj.metadata ?? null,
+          position: obj.position ?? 0,
+        })
+        .where(eq(schema.theoryObjects.id, existing.id));
+      gUpdated++;
       continue;
     }
     await db.insert(schema.theoryObjects).values({
@@ -1153,7 +1184,7 @@ export async function runExpandSeed() {
     });
     gAdded++;
   }
-  console.log(`[expand-seed] generations: added=${gAdded}, skipped=${gSkipped}`);
+  console.log(`[expand-seed] generations: added=${gAdded}, updated=${gUpdated}`);
 
   await client.end({ timeout: 5 });
 }
