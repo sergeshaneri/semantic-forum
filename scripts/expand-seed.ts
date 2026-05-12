@@ -602,11 +602,358 @@ const REININ: ObjectSeed[] = [
   },
 ];
 
+const QUADRAS: ObjectSeed[] = [
+  {
+    kind: "custom",
+    slug: "quadra-alpha",
+    name: "Квадра Альфа",
+    description:
+      "ИЛЭ, СЭИ, ЭСЭ, ЛИИ. Ценности: ЧИ, БЛ, ЧЭ, БС. «Дети социона» — открытость новому, теоретизирование, тёплая компания, генерация идей.",
+    metadata: {
+      groupType: "quadra",
+      tims: ["ile", "sei", "ese", "lii"],
+      values: ["ЧИ", "БЛ", "ЧЭ", "БС"],
+    },
+  },
+  {
+    kind: "custom",
+    slug: "quadra-beta",
+    name: "Квадра Бета",
+    description:
+      "ЭИЭ, ЛСИ, СЛЭ, ИЭИ. Ценности: ЧС, БЛ, ЧЭ, БИ. «Юность социона» — идеология, иерархия, эмоциональный накал, прорывы через волю.",
+    metadata: {
+      groupType: "quadra",
+      tims: ["eie", "lsi", "sle", "iei"],
+      values: ["ЧС", "БЛ", "ЧЭ", "БИ"],
+    },
+  },
+  {
+    kind: "custom",
+    slug: "quadra-gamma",
+    name: "Квадра Гамма",
+    description:
+      "СЭЭ, ИЛИ, ЛИЭ, ЭСИ. Ценности: ЧС, БЭ, ЧЛ, БИ. «Зрелость социона» — реализм, прагматика, личные отношения, проверка делом.",
+    metadata: {
+      groupType: "quadra",
+      tims: ["see", "ili", "lie", "esi"],
+      values: ["ЧС", "БЭ", "ЧЛ", "БИ"],
+    },
+  },
+  {
+    kind: "custom",
+    slug: "quadra-delta",
+    name: "Квадра Дельта",
+    description:
+      "ЛСЭ, ЭИИ, ИЭЭ, СЛИ. Ценности: ЧИ, БЭ, ЧЛ, БС. «Старость социона» — мастерство, индивидуальный комфорт, гуманизм, тонкая работа.",
+    metadata: {
+      groupType: "quadra",
+      tims: ["lse", "eii", "iee", "sli"],
+      values: ["ЧИ", "БЭ", "ЧЛ", "БС"],
+    },
+  },
+];
+
+const CLUBS: ObjectSeed[] = [
+  {
+    kind: "custom",
+    slug: "club-researchers",
+    name: "Клуб исследователей",
+    description:
+      "Логики-интуиты: ИЛЭ, ЛИИ, ИЛИ, ЛИЭ. Сильные БЛ + ЧИ или ЧЛ + БИ. Учёные, аналитики, методологи, изобретатели.",
+    metadata: {
+      groupType: "club",
+      tims: ["ile", "lii", "ili", "lie"],
+      axis: "логика+интуиция",
+    },
+  },
+  {
+    kind: "custom",
+    slug: "club-managers",
+    name: "Клуб управленцев",
+    description:
+      "Логики-сенсорики: ЛСИ, СЛЭ, ЛСЭ, СЛИ. Сильные БЛ + ЧС или ЧЛ + БС. Управленцы, инженеры, технологи, ремесленники.",
+    metadata: {
+      groupType: "club",
+      tims: ["lsi", "sle", "lse", "sli"],
+      axis: "логика+сенсорика",
+    },
+  },
+  {
+    kind: "custom",
+    slug: "club-humanitarians",
+    name: "Клуб гуманитариев",
+    description:
+      "Этики-интуиты: ЭИЭ, ИЭИ, ЭИИ, ИЭЭ. Сильные БЭ + ЧИ или ЧЭ + БИ. Гуманитарии, психологи, художники, наставники.",
+    metadata: {
+      groupType: "club",
+      tims: ["eie", "iei", "eii", "iee"],
+      axis: "этика+интуиция",
+    },
+  },
+  {
+    kind: "custom",
+    slug: "club-socials",
+    name: "Клуб социалов",
+    description:
+      "Этики-сенсорики: СЭИ, ЭСЭ, СЭЭ, ЭСИ. Сильные БЭ + ЧС или ЧЭ + БС. Соцработники, бытописатели, организаторы быта.",
+    metadata: {
+      groupType: "club",
+      tims: ["sei", "ese", "see", "esi"],
+      axis: "этика+сенсорика",
+    },
+  },
+];
+
+const TEMPERAMENTS: ObjectSeed[] = [
+  {
+    kind: "custom",
+    slug: "temperament-flexible",
+    name: "Гибко-разворотливый",
+    description:
+      "Иррациональные экстраверты: ИЛЭ, СЭЭ, СЛЭ, ИЭЭ. Высокая ситуативная подвижность, быстрая смена курса, инициатива без долгого плана.",
+    metadata: {
+      groupType: "temperament",
+      tims: ["ile", "see", "sle", "iee"],
+    },
+  },
+  {
+    kind: "custom",
+    slug: "temperament-linear",
+    name: "Линейно-напористый",
+    description:
+      "Рациональные экстраверты: ЭСЭ, ЛИЭ, ЛСЭ, ЭИЭ. Целеустремлённое движение к цели, темп, давление, готовность преодолевать препятствия.",
+    metadata: {
+      groupType: "temperament",
+      tims: ["ese", "lie", "lse", "eie"],
+    },
+  },
+  {
+    kind: "custom",
+    slug: "temperament-balanced",
+    name: "Уравновешенно-стабильный",
+    description:
+      "Рациональные интроверты: ЛИИ, ЭСИ, ЛСИ, ЭИИ. Устойчивый ровный ритм, основательность, надёжность, спокойная упорядоченность.",
+    metadata: {
+      groupType: "temperament",
+      tims: ["lii", "esi", "lsi", "eii"],
+    },
+  },
+  {
+    kind: "custom",
+    slug: "temperament-receptive",
+    name: "Восприимчиво-адаптивный",
+    description:
+      "Иррациональные интроверты: СЭИ, ИЛИ, ИЭИ, СЛИ. Чуткая адаптация к среде, мягкость, наблюдательность, экономия движений.",
+    metadata: {
+      groupType: "temperament",
+      tims: ["sei", "ili", "iei", "sli"],
+    },
+  },
+];
+
+const ASPECT_DICHOTOMIES: ObjectSeed[] = [
+  {
+    kind: "dichotomy",
+    slug: "aspect-sign",
+    name: "Признак аспекта: знак (Чёрные / Белые)",
+    description:
+      "Базовое деление: чёрные аспекты (ЧИ, ЧЛ, ЧЭ, ЧС) описывают объекты и их свойства напрямую; белые (БИ, БЛ, БЭ, БС) описывают отношения между объектами. Эквивалентно экстра- vs интровертной природе аспекта.",
+    metadata: {
+      appliesTo: "aspect",
+      basis: true,
+      pole_a: "Чёрный (экстра, объект)",
+      pole_b: "Белый (интро, поле)",
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "aspect-rationality",
+    name: "Признак аспекта: рациональность",
+    description:
+      "Рациональные аспекты (Л, Э — суждения): ЧЛ, БЛ, ЧЭ, БЭ. Иррациональные (С, И — восприятие): ЧС, БС, ЧИ, БИ.",
+    metadata: {
+      appliesTo: "aspect",
+      basis: true,
+      pole_a: "Рациональный",
+      pole_b: "Иррациональный",
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "aspect-information-energy",
+    name: "Признак аспекта: информация / энергия",
+    description:
+      "Информационные (Л, И): ЧЛ, БЛ, ЧИ, БИ — оперируют отвлечёнными представлениями. Энергетические (Э, С): ЧЭ, БЭ, ЧС, БС — оперируют конкретно-чувственным.",
+    metadata: {
+      appliesTo: "aspect",
+      basis: true,
+      pole_a: "Информационный",
+      pole_b: "Энергетический",
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "aspect-static-dynamic",
+    name: "Признак аспекта: статика / динамика",
+    description:
+      "Статические аспекты описывают устойчивые структуры (БЛ, ЧИ, БЭ, ЧС). Динамические — процессы и изменения (ЧЛ, БИ, ЧЭ, БС). Производный признак: XNOR от знака и рациональности.",
+    metadata: {
+      appliesTo: "aspect",
+      basis: false,
+      pole_a: "Статика",
+      pole_b: "Динамика",
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "aspect-evolution-involution",
+    name: "Признак аспекта: эволюция / инволюция",
+    description:
+      "Эволюционные (по Гуленко: +) расширяют, развивают, наращивают. Инволюционные (–) сворачивают, упрощают, оптимизируют. Производный знаковый признак Гуленко.",
+    metadata: {
+      appliesTo: "aspect",
+      basis: false,
+      pole_a: "Эволюция (+)",
+      pole_b: "Инволюция (−)",
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "aspect-external-internal",
+    name: "Признак аспекта: внешнее / внутреннее",
+    description:
+      "Внешние аспекты описывают физически наблюдаемое (тело, действие, форма). Внутренние — ненаблюдаемое (отношения, законы, эмоции, время). Альтернативное название оси «информация-энергия». Уточнить под Чурюмовскую формулировку.",
+    metadata: {
+      appliesTo: "aspect",
+      basis: false,
+      pole_a: "Внешнее",
+      pole_b: "Внутреннее",
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "aspect-derived-7",
+    name: "Признак аспекта: 7-й (XNOR всех трёх базовых)",
+    description:
+      "Производный признак, рождённый XNOR-комбинацией всех трёх базовых аспектных признаков (по математической модели Чурюмова). Семантическое наполнение требует уточнения от автора теории.",
+    metadata: {
+      appliesTo: "aspect",
+      basis: false,
+      derived: "XNOR(sign, rationality, info-energy)",
+    },
+  },
+];
+
+const FUNCTION_DICHOTOMIES: ObjectSeed[] = [
+  {
+    kind: "dichotomy",
+    slug: "function-strength",
+    name: "Признак функции: сильная / слабая",
+    description:
+      "Сильные функции (1, 2, 7, 8) — высокая мерность, надёжная работа. Слабые (3, 4, 5, 6) — ограниченные, легко ошибаются. Базовый признак.",
+    metadata: {
+      appliesTo: "function",
+      basis: true,
+      pole_a: "Сильная",
+      pole_b: "Слабая",
+      strongPositions: [1, 2, 7, 8],
+      weakPositions: [3, 4, 5, 6],
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "function-awareness",
+    name: "Признак функции: ментальная / витальная",
+    description:
+      "Ментальные функции (1–4) осознаваемы, человек ими «думает». Витальные (5–8) работают на бессознательном уровне, проявляются автоматически.",
+    metadata: {
+      appliesTo: "function",
+      basis: true,
+      pole_a: "Ментальная",
+      pole_b: "Витальная",
+      mentalPositions: [1, 2, 3, 4],
+      vitalPositions: [5, 6, 7, 8],
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "function-contact",
+    name: "Признак функции: контактная / инертная",
+    description:
+      "Контактные функции (2, 4, 6, 8) — гибко реагируют на новое в среде. Инертные (1, 3, 5, 7) — устойчиво держат свою позицию, медленнее перестраиваются.",
+    metadata: {
+      appliesTo: "function",
+      basis: true,
+      pole_a: "Контактная",
+      pole_b: "Инертная",
+      contactPositions: [2, 4, 6, 8],
+      inertPositions: [1, 3, 5, 7],
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "function-block-ego-id",
+    name: "Признак функции: ценностная / неценностная",
+    description:
+      "Ценностные функции (1, 2, 5, 6 — блоки Эго и Супер-Ид) выражают то, к чему человек стремится. Неценностные (3, 4, 7, 8 — блоки Супер-Эго и Ид) обслуживают, но не влекут.",
+    metadata: {
+      appliesTo: "function",
+      basis: false,
+      pole_a: "Ценностная",
+      pole_b: "Неценностная",
+      valuedPositions: [1, 2, 5, 6],
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "function-accepting-creating",
+    name: "Признак функции: принимающая / выдающая",
+    description:
+      "Принимающие (нечётные: 1, 3, 5, 7) — обрабатывают входящую информацию. Выдающие (чётные: 2, 4, 6, 8) — генерируют исходящий поток.",
+    metadata: {
+      appliesTo: "function",
+      basis: false,
+      pole_a: "Принимающая (нечётная)",
+      pole_b: "Выдающая (чётная)",
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "function-evaluative-situational",
+    name: "Признак функции: оценочная / ситуативная",
+    description:
+      "Оценочные функции дают устойчивые оценки (1, 4, 5, 8). Ситуативные подстраиваются под контекст (2, 3, 6, 7). Производный признак, уточнить под Чурюмовскую формулировку.",
+    metadata: {
+      appliesTo: "function",
+      basis: false,
+      pole_a: "Оценочная",
+      pole_b: "Ситуативная",
+    },
+  },
+  {
+    kind: "dichotomy",
+    slug: "function-derived-7",
+    name: "Признак функции: 7-й (XNOR всех базовых)",
+    description:
+      "Производный признак, рождённый XNOR-комбинацией трёх базовых функциональных признаков (по математической модели Чурюмова). Семантическое наполнение требует уточнения.",
+    metadata: {
+      appliesTo: "function",
+      basis: false,
+      derived: "XNOR(strength, awareness, contact)",
+    },
+  },
+];
+
 const ALL_OBJECTS: ObjectSeed[] = [
   ...FUNCTION_POSITIONS,
   ...TIMS,
   ...ITO,
   ...REININ,
+  ...QUADRAS,
+  ...CLUBS,
+  ...TEMPERAMENTS,
+  ...ASPECT_DICHOTOMIES,
+  ...FUNCTION_DICHOTOMIES,
 ];
 
 const GENERATIONS_THEORY = {
