@@ -1,3 +1,4 @@
+import { runExpandSeed } from "./expand-seed";
 import { runMigrations } from "./migrate";
 import { runSeed } from "./seed";
 
@@ -20,6 +21,12 @@ async function main() {
     await runSeed();
   } catch (err) {
     console.error("[bootstrap] seed failed (continuing anyway):", err);
+  }
+
+  try {
+    await runExpandSeed();
+  } catch (err) {
+    console.error("[bootstrap] expand-seed failed (continuing anyway):", err);
   }
 }
 

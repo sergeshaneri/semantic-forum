@@ -13,6 +13,7 @@
     "db:push": "dotenv -e .env -- drizzle-kit push",
     "db:studio": "dotenv -e .env -- drizzle-kit studio",
     "db:seed": "dotenv -e .env -- tsx scripts/seed.ts",
+    "db:expand": "dotenv -e .env -- tsx scripts/expand-seed.ts",
     "db:bootstrap": "dotenv -e .env -- tsx scripts/bootstrap.ts",
     "auth:secret": "npx auth secret"
   },
