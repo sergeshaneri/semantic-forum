@@ -1,15 +1,20 @@
 import { TRPCError } from "@trpc/server";
-import { count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   comments,
   entities,
+  follows,
   interpretations,
   theories,
   theoryObjects,
   users,
 } from "@/server/db/schema";
-import { createTRPCRouter, publicProcedure } from "../init";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "../init";
 
 export const userRouter = createTRPCRouter({
   getProfile: publicProcedure
@@ -22,12 +27,14 @@ export const userRouter = createTRPCRouter({
           username: true,
           name: true,
           image: true,
+          bio: true,
           createdAt: true,
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
 
       const userId = user.id;
+      const viewerId = ctx.session?.user?.id ?? null;
 
       const [counters] = await Promise.all([
         ctx.db
@@ -36,6 +43,8 @@ export const userRouter = createTRPCRouter({
             comments: sql<number>`(select count(*)::int from ${comments} where ${comments.authorId} = ${userId})`,
             entities: sql<number>`(select count(*)::int from ${entities} where ${entities.createdBy} = ${userId})`,
             theories: sql<number>`(select count(*)::int from ${theories} where ${theories.authorId} = ${userId})`,
+            followers: sql<number>`(select count(*)::int from ${follows} where ${follows.followingId} = ${userId})`,
+            following: sql<number>`(select count(*)::int from ${follows} where ${follows.followerId} = ${userId})`,
           })
           .from(users)
           .where(eq(users.id, userId))
@@ -53,6 +62,21 @@ export const userRouter = createTRPCRouter({
       `);
       const karma = Number(karmaRows[0]?.karma ?? 0);
 
+      let viewerIsFollowing = false;
+      if (viewerId && viewerId !== userId) {
+        const [f] = await ctx.db
+          .select({ x: follows.followerId })
+          .from(follows)
+          .where(
+            and(
+              eq(follows.followerId, viewerId),
+              eq(follows.followingId, userId),
+            ),
+          )
+          .limit(1);
+        viewerIsFollowing = Boolean(f);
+      }
+
       const topInterp = await ctx.db.query.interpretations.findFirst({
         where: eq(interpretations.authorId, userId),
         orderBy: [desc(interpretations.score)],
@@ -60,12 +84,7 @@ export const userRouter = createTRPCRouter({
           entity: { columns: { id: true, slug: true, title: true } },
           theory: { columns: { id: true, slug: true, name: true } },
           theoryObject: {
-            columns: {
-              id: true,
-              slug: true,
-              name: true,
-              metadata: true,
-            },
+            columns: { id: true, slug: true, name: true, metadata: true },
           },
         },
       });
@@ -81,12 +100,7 @@ export const userRouter = createTRPCRouter({
           entity: { columns: { id: true, slug: true, title: true } },
           theory: { columns: { id: true, slug: true, name: true } },
           theoryObject: {
-            columns: {
-              id: true,
-              slug: true,
-              name: true,
-              metadata: true,
-            },
+            columns: { id: true, slug: true, name: true, metadata: true },
           },
         },
       });
@@ -180,14 +194,19 @@ export const userRouter = createTRPCRouter({
           username: user.username ?? "",
           name: user.name ?? "",
           image: user.image ?? null,
+          bio: user.bio ?? "",
           createdAt: user.createdAt,
         },
+        isSelf: viewerId === userId,
+        viewerIsFollowing,
         karma,
         counters: {
           interpretations: Number(counters.interpretations),
           comments: Number(counters.comments),
           entities: Number(counters.entities),
           theories: Number(counters.theories),
+          followers: Number(counters.followers),
+          following: Number(counters.following),
         },
         topInterpretation: topInterp
           ? {
@@ -265,4 +284,112 @@ export const userRouter = createTRPCRouter({
         })),
       };
     }),
+
+  updateProfile: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(128),
+        bio: z.string().max(1000).optional(),
+        image: z.string().url().max(500).optional().or(z.literal("")),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(users)
+        .set({
+          name: input.name,
+          bio: input.bio && input.bio.trim() ? input.bio.trim() : null,
+          image: input.image && input.image.length > 0 ? input.image : null,
+        })
+        .where(eq(users.id, ctx.userId));
+      return { ok: true as const };
+    }),
+
+  follow: protectedProcedure
+    .input(z.object({ username: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const target = await ctx.db.query.users.findFirst({
+        where: eq(users.username, input.username),
+        columns: { id: true },
+      });
+      if (!target) throw new TRPCError({ code: "NOT_FOUND" });
+      if (target.id === ctx.userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Нельзя подписаться на себя",
+        });
+      }
+      try {
+        await ctx.db.insert(follows).values({
+          followerId: ctx.userId,
+          followingId: target.id,
+        });
+      } catch {
+        // already following — ignore
+      }
+      return { ok: true as const };
+    }),
+
+  unfollow: protectedProcedure
+    .input(z.object({ username: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const target = await ctx.db.query.users.findFirst({
+        where: eq(users.username, input.username),
+        columns: { id: true },
+      });
+      if (!target) throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db
+        .delete(follows)
+        .where(
+          and(
+            eq(follows.followerId, ctx.userId),
+            eq(follows.followingId, target.id),
+          ),
+        );
+      return { ok: true as const };
+    }),
+
+  feed: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select({ followingId: follows.followingId })
+      .from(follows)
+      .where(eq(follows.followerId, ctx.userId));
+    const ids = rows.map((r) => r.followingId);
+    if (ids.length === 0) return [];
+
+    const feed = await ctx.db.query.interpretations.findMany({
+      where: (i, { inArray }) => inArray(i.authorId, ids),
+      orderBy: [desc(interpretations.createdAt)],
+      limit: 15,
+      with: {
+        entity: { columns: { slug: true, title: true } },
+        theory: { columns: { slug: true, name: true } },
+        theoryObject: {
+          columns: { slug: true, name: true, metadata: true },
+        },
+        author: { columns: { username: true, name: true } },
+      },
+    });
+
+    return feed.map((i) => ({
+      id: i.id,
+      body: i.body,
+      score: i.score,
+      createdAt: i.createdAt,
+      entity: i.entity,
+      theory: i.theory,
+      theoryObject: i.theoryObject
+        ? {
+            slug: i.theoryObject.slug,
+            name: i.theoryObject.name,
+            metadata: i.theoryObject.metadata as
+              | Record<string, unknown>
+              | null,
+          }
+        : null,
+      author: i.author
+        ? { username: i.author.username ?? "", name: i.author.name ?? "" }
+        : null,
+    }));
+  }),
 });

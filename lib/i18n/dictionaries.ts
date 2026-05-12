@@ -56,6 +56,20 @@ export type Dictionary = {
     addInterpretation: string;
     filterByTheory: string;
     allTheories: string;
+    loginToReply: string;
+  };
+  comment: {
+    bodyPlaceholder: string;
+    publish: string;
+  };
+  actions: {
+    edit: string;
+    delete: string;
+    save: string;
+    confirmDelete: string;
+    confirmDeleteInterpretation: string;
+    confirmDeleteEntity: string;
+    confirmDeleteTheory: string;
   };
   auth: {
     loginTitle: string;
@@ -222,6 +236,22 @@ const ru: Dictionary = {
     addInterpretation: "Добавить интерпретацию",
     filterByTheory: "Фильтр по теории",
     allTheories: "Все теории",
+    loginToReply: "Войди чтобы ответить",
+  },
+  comment: {
+    bodyPlaceholder: "Аргумент в поддержку, опровержение или уточнение...",
+    publish: "Опубликовать",
+  },
+  actions: {
+    edit: "редактировать",
+    delete: "удалить",
+    save: "Сохранить",
+    confirmDelete: "Удалить?",
+    confirmDeleteInterpretation: "Удалить интерпретацию вместе со всеми комментариями?",
+    confirmDeleteEntity:
+      "Удалить сущность? Нельзя если на ней есть интерпретации других авторов.",
+    confirmDeleteTheory:
+      "Удалить теорию? Нельзя если на ней есть интерпретации других авторов.",
   },
   auth: {
     loginTitle: "Войти",
@@ -391,6 +421,23 @@ const en: Dictionary = {
     addInterpretation: "Add interpretation",
     filterByTheory: "Filter by theory",
     allTheories: "All theories",
+    loginToReply: "Sign in to reply",
+  },
+  comment: {
+    bodyPlaceholder: "Argument supporting, refuting, or clarifying...",
+    publish: "Publish",
+  },
+  actions: {
+    edit: "edit",
+    delete: "delete",
+    save: "Save",
+    confirmDelete: "Delete?",
+    confirmDeleteInterpretation:
+      "Delete this interpretation and all its comments?",
+    confirmDeleteEntity:
+      "Delete entity? Not allowed if other people have interpretations on it.",
+    confirmDeleteTheory:
+      "Delete theory? Not allowed if other people have interpretations in it.",
   },
   auth: {
     loginTitle: "Sign in",

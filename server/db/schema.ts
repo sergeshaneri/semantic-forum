@@ -49,9 +49,24 @@ export const users = pgTable("users", {
   username: varchar("username", { length: 64 }).unique(),
   name: varchar("name", { length: 128 }),
   image: text("image"),
+  bio: text("bio"),
   passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const follows = pgTable(
+  "follows",
+  {
+    followerId: text("follower_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    followingId: text("following_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.followerId, t.followingId] })],
+);
 
 export const accounts = pgTable(
   "accounts",
@@ -187,6 +202,7 @@ export const interpretations = pgTable("interpretations", {
   votesDown: integer("votes_down").default(0).notNull(),
   score: integer("score").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at"),
 });
 
 export const comments = pgTable(
@@ -203,6 +219,7 @@ export const comments = pgTable(
     votesUp: integer("votes_up").default(0).notNull(),
     votesDown: integer("votes_down").default(0).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
   },
   (t) => [
     foreignKey({
@@ -287,6 +304,21 @@ export const usersRelations = relations(users, ({ many }) => ({
   interpretations: many(interpretations),
   comments: many(comments),
   votes: many(votes),
+  followers: many(follows, { relationName: "userFollowing" }),
+  following: many(follows, { relationName: "userFollower" }),
+}));
+
+export const followsRelations = relations(follows, ({ one }) => ({
+  follower: one(users, {
+    fields: [follows.followerId],
+    references: [users.id],
+    relationName: "userFollower",
+  }),
+  following: one(users, {
+    fields: [follows.followingId],
+    references: [users.id],
+    relationName: "userFollowing",
+  }),
 }));
 
 export const theoriesRelations = relations(theories, ({ one, many }) => ({

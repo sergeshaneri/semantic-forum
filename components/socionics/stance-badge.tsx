@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 
 export type Stance = "pro" | "contra" | "neutral";
+export { type Stance as StanceType };
 
 const styles: Record<Stance, string> = {
   pro: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",

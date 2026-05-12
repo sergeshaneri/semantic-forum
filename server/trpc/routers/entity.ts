@@ -1,7 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { entities, interpretations, votes } from "@/server/db/schema";
+import {
+  entities,
+  interpretations,
+  theories,
+  votes,
+} from "@/server/db/schema";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 
 const langSchema = z.enum(["ru", "en"]);
@@ -53,6 +58,64 @@ export const entityRouter = createTRPCRouter({
         .returning({ id: entities.id, slug: entities.slug });
 
       return { id: inserted!.id, slug: inserted!.slug };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        title: z.string().min(1).max(300),
+        descriptionWiki: z.string().min(20).max(3000),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select({ id: entities.id, createdBy: entities.createdBy })
+        .from(entities)
+        .where(eq(entities.id, input.id))
+        .limit(1);
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (existing.createdBy !== ctx.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Редактировать может только автор",
+        });
+      }
+      await ctx.db
+        .update(entities)
+        .set({ title: input.title, descriptionWiki: input.descriptionWiki })
+        .where(eq(entities.id, input.id));
+      return { ok: true as const };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select({ id: entities.id, createdBy: entities.createdBy })
+        .from(entities)
+        .where(eq(entities.id, input.id))
+        .limit(1);
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (existing.createdBy !== ctx.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Удалять может только автор",
+        });
+      }
+      const [{ c }] = await ctx.db
+        .select({ c: count() })
+        .from(interpretations)
+        .where(eq(interpretations.entityId, input.id));
+      if (Number(c) > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "На сущности уже есть интерпретации — нельзя удалить чужую работу. Попроси модератора.",
+        });
+      }
+      await ctx.db.delete(entities).where(eq(entities.id, input.id));
+      return { ok: true as const };
     }),
 
   list: publicProcedure
@@ -110,7 +173,13 @@ export const entityRouter = createTRPCRouter({
     }),
 
   getBySlug: publicProcedure
-    .input(z.object({ slug: z.string(), language: langSchema }))
+    .input(
+      z.object({
+        slug: z.string(),
+        language: langSchema,
+        theorySlug: z.string().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const entity = await ctx.db.query.entities.findFirst({
         where: and(
@@ -122,7 +191,7 @@ export const entityRouter = createTRPCRouter({
             orderBy: [desc(interpretations.score)],
             with: {
               theory: {
-                columns: { id: true, name: true, slug: true },
+                columns: { id: true, slug: true, name: true },
               },
               theoryObject: {
                 columns: {
@@ -141,6 +210,7 @@ export const entityRouter = createTRPCRouter({
                     columns: { id: true, username: true, name: true },
                   },
                 },
+                orderBy: (c, { asc }) => [asc(c.createdAt)],
               },
             },
           },
@@ -149,10 +219,29 @@ export const entityRouter = createTRPCRouter({
 
       if (!entity) throw new TRPCError({ code: "NOT_FOUND" });
 
+      const allInterpretations = entity.interpretations;
+      const filtered = input.theorySlug
+        ? allInterpretations.filter((i) => i.theory?.slug === input.theorySlug)
+        : allInterpretations;
+
+      // theory choices for the dropdown
+      const theorySet = new Map<string, { slug: string; name: string }>();
+      for (const i of allInterpretations) {
+        if (i.theory) {
+          theorySet.set(i.theory.slug, {
+            slug: i.theory.slug,
+            name: i.theory.name,
+          });
+        }
+      }
+      const theoryChoices = Array.from(theorySet.values()).sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
+
       const userId = ctx.session?.user?.id ?? null;
 
-      const interpIds = entity.interpretations.map((i) => i.id);
-      const commentIds = entity.interpretations.flatMap((i) =>
+      const interpIds = filtered.map((i) => i.id);
+      const commentIds = filtered.flatMap((i) =>
         i.comments.map((c) => c.id),
       );
 
@@ -200,14 +289,17 @@ export const entityRouter = createTRPCRouter({
           kind: entity.kind,
           descriptionWiki: entity.descriptionWiki ?? "",
           tags: [] as string[],
+          createdBy: entity.createdBy,
         },
-        interpretations: entity.interpretations.map((i) => ({
+        theoryChoices,
+        interpretations: filtered.map((i) => ({
           id: i.id,
           body: i.body,
           votesUp: i.votesUp,
           votesDown: i.votesDown,
           score: i.score,
           userVote: (interpVotes.get(i.id) ?? 0) as 1 | -1 | 0,
+          authorId: i.authorId,
           theory: i.theory,
           theoryObject: i.theoryObject
             ? {
@@ -234,6 +326,7 @@ export const entityRouter = createTRPCRouter({
             votesUp: c.votesUp,
             votesDown: c.votesDown,
             userVote: (commentVotes.get(c.id) ?? 0) as 1 | -1 | 0,
+            authorId: c.authorId,
             author: c.author
               ? {
                   id: c.author.id,
