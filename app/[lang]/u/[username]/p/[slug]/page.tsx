@@ -65,12 +65,13 @@ export default async function PublicationPage({
               : dict.publications.kindVideo}
           </Badge>
           {tags.map((t) => (
-            <span
+            <Link
               key={t.id}
-              className="text-xs text-muted-foreground/80 font-mono"
+              href={`/${lang}/tags/${t.slug}`}
+              className="text-xs text-muted-foreground/80 font-mono hover:text-foreground transition-colors"
             >
               #{t.label}
-            </span>
+            </Link>
           ))}
           <span className="text-xs text-muted-foreground ml-auto">
             {created}

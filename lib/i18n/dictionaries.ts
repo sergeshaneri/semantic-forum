@@ -550,6 +550,23 @@ export type Dictionary = {
     backToList: string;
     by: string;
   };
+  annotations: {
+    title: string;
+    helper: string;
+    selectFirst: string;
+    addButton: string;
+    bodyPlaceholder: string;
+    publish: string;
+    empty: string;
+    quoteLabel: string;
+    findInText: string;
+  };
+  tags: {
+    title: string;
+    notFound: string;
+    entitiesSection: string;
+    publicationsSection: string;
+  };
   groups: {
     title: string;
     subtitle: string;
@@ -1146,6 +1163,24 @@ const ru: Dictionary = {
     threadEmpty: "В этом диалоге ещё нет сообщений. Напиши первым.",
     unreadShort: "новых",
     typingPlaceholder: "Сообщение...",
+  },
+  annotations: {
+    title: "Аннотации к материалу",
+    helper:
+      "Выдели фрагмент текста выше и нажми «Добавить заметку», чтобы привязать комментарий к конкретному месту.",
+    selectFirst: "Сначала выдели фрагмент в тексте.",
+    addButton: "Добавить заметку к выделенному",
+    bodyPlaceholder: "Твоя интерпретация или вопрос об этом фрагменте...",
+    publish: "Опубликовать",
+    empty: "Аннотаций пока нет. Будь первым.",
+    quoteLabel: "Фрагмент",
+    findInText: "Найти в тексте",
+  },
+  tags: {
+    title: "Тег",
+    notFound: "Ничего с таким тегом не найдено.",
+    entitiesSection: "Сущности",
+    publicationsSection: "Публикации",
   },
   groups: {
     title: "Группы",
@@ -1766,6 +1801,24 @@ const en: Dictionary = {
     threadEmpty: "No messages here yet. Be the first.",
     unreadShort: "new",
     typingPlaceholder: "Message...",
+  },
+  annotations: {
+    title: "Material annotations",
+    helper:
+      "Select a fragment above and click 'Add note' to attach a comment to that exact place.",
+    selectFirst: "Select a fragment in the text first.",
+    addButton: "Annotate selection",
+    bodyPlaceholder: "Your interpretation or question about this fragment...",
+    publish: "Publish",
+    empty: "No annotations yet. Be the first.",
+    quoteLabel: "Quote",
+    findInText: "Find in text",
+  },
+  tags: {
+    title: "Tag",
+    notFound: "Nothing found for this tag.",
+    entitiesSection: "Entities",
+    publicationsSection: "Publications",
   },
   groups: {
     title: "Groups",

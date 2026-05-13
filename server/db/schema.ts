@@ -725,6 +725,25 @@ export const publicationRevisions = pgTable("publication_revisions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ----- Annotations (Genius-style notes on materials/entities) -----
+
+export const annotations = pgTable("annotations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  entityId: uuid("entity_id")
+    .notNull()
+    .references(() => entities.id, { onDelete: "cascade" }),
+  authorId: text("author_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  anchorText: varchar("anchor_text", { length: 1000 }).notNull(),
+  startOffset: integer("start_offset"),
+  endOffset: integer("end_offset"),
+  body: text("body").notNull(),
+  language: langEnum("language").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at"),
+});
+
 // ----- Direct messages -----
 
 export const conversations = pgTable("conversations", {
@@ -971,6 +990,17 @@ export const publicationRevisionsRelations = relations(
     }),
   }),
 );
+
+export const annotationsRelations = relations(annotations, ({ one }) => ({
+  entity: one(entities, {
+    fields: [annotations.entityId],
+    references: [entities.id],
+  }),
+  author: one(users, {
+    fields: [annotations.authorId],
+    references: [users.id],
+  }),
+}));
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
   owner: one(users, { fields: [groups.ownerId], references: [users.id] }),

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AddInterpretationForm } from "@/components/socionics/add-interpretation-form";
 import { AddToCollectionMenu } from "@/components/socionics/add-to-collection-menu";
+import { Annotations } from "@/components/socionics/annotations";
 import { BookmarkButton } from "@/components/socionics/bookmark-button";
 import { EntityHeaderActions } from "@/components/socionics/entity-header-actions";
 import { EntityRelations } from "@/components/socionics/entity-relations";
@@ -48,6 +49,7 @@ export default async function EntityPage({
   }
 
   const { entity, interpretations, theoryChoices } = data;
+  const annotations = await api.annotation.list({ entityId: entity.id });
   const kindLabel =
     entity.kind === "word"
       ? dict.entities.kindWord
@@ -130,7 +132,10 @@ export default async function EntityPage({
         </section>
       )}
 
-      <section className="space-y-3 text-foreground">
+      <section
+        className="space-y-3 text-foreground"
+        data-annotation-source="true"
+      >
         <Markdown>{entity.descriptionWiki}</Markdown>
       </section>
 
@@ -179,6 +184,18 @@ export default async function EntityPage({
           ))}
         </div>
       </section>
+
+      <Separator />
+
+      <Annotations
+        entityId={entity.id}
+        initial={annotations}
+        isAuthed={isAuthed}
+        currentUserId={currentUserId}
+        loginHref={`/${lang}/login?callbackUrl=/${lang}/entities/${entity.slug}`}
+        lang={lang}
+        dict={dict}
+      />
 
       <Separator />
 

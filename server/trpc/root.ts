@@ -1,5 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "./init";
 import { affiliationRouter } from "./routers/affiliation";
+import { annotationRouter } from "./routers/annotation";
 import { authRouter } from "./routers/auth";
 import { bookmarkRouter } from "./routers/bookmark";
 import { collectionRouter } from "./routers/collection";
@@ -20,6 +21,7 @@ import { answerRouter, questionRouter } from "./routers/question";
 import { schoolRouter, sourceRouter } from "./routers/school";
 import { searchRouter } from "./routers/search";
 import { statsRouter } from "./routers/stats";
+import { tagRouter } from "./routers/tag";
 import { theoryRouter } from "./routers/theory";
 import { theoryObjectRouter } from "./routers/theoryObject";
 import { trendingRouter } from "./routers/trending";
@@ -57,6 +59,8 @@ export const appRouter = createTRPCRouter({
   dm: dmRouter,
   poll: pollRouter,
   group: groupRouter,
+  annotation: annotationRouter,
+  tag: tagRouter,
 });
 
 export type AppRouter = typeof appRouter;
