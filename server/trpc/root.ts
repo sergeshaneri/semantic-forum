@@ -12,6 +12,7 @@ import { entityRelationRouter } from "./routers/entityRelation";
 import { eventRouter } from "./routers/event";
 import { groupRouter } from "./routers/group";
 import { healthRouter } from "./routers/health";
+import { importRouter } from "./routers/import";
 import { interpretationRouter } from "./routers/interpretation";
 import { leaderboardRouter } from "./routers/leaderboard";
 import { notificationRouter } from "./routers/notification";
@@ -63,6 +64,7 @@ export const appRouter = createTRPCRouter({
   annotation: annotationRouter,
   tag: tagRouter,
   apiKey: apiKeyRouter,
+  import: importRouter,
 });
 
 export type AppRouter = typeof appRouter;

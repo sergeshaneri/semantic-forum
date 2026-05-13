@@ -41,6 +41,10 @@ export type Dictionary = {
     theoriesSection: string;
     publicationsSection: string;
     usersSection: string;
+    questionsSection: string;
+    pollsSection: string;
+    groupsSection: string;
+    groupPostsSection: string;
   };
   material: {
     embedUrl: string;
@@ -382,6 +386,13 @@ export type Dictionary = {
     publish: string;
     backToProfile: string;
     referencesTitle: string;
+    importButton: string;
+    importTitle: string;
+    importHint: string;
+    importUrlPlaceholder: string;
+    importPreview: string;
+    importCreate: string;
+    importedFrom: string;
   };
   products: {
     title: string;
@@ -754,6 +765,10 @@ const ru: Dictionary = {
     theoriesSection: "Теории",
     publicationsSection: "Публикации",
     usersSection: "Люди",
+    questionsSection: "Вопросы",
+    pollsSection: "Опросы",
+    groupsSection: "Группы",
+    groupPostsSection: "Посты в группах",
   },
   material: {
     embedUrl: "Ссылка для встраивания (embed URL)",
@@ -1119,6 +1134,14 @@ const ru: Dictionary = {
     publish: "Опубликовать",
     backToProfile: "← К автору",
     referencesTitle: "Связано с",
+    importButton: "Импорт по URL",
+    importTitle: "Импорт публикации по ссылке",
+    importHint:
+      "Substack-пост, публичный пост в Telegram-канале или любая HTML-страница с og:title. Создаст черновик публикации, который можно отредактировать.",
+    importUrlPlaceholder: "https://example.substack.com/p/article-slug",
+    importPreview: "Получить превью",
+    importCreate: "Создать публикацию",
+    importedFrom: "Импортировано из",
   },
   products: {
     title: "Услуги и продукты",
@@ -1534,6 +1557,10 @@ const en: Dictionary = {
     theoriesSection: "Theories",
     publicationsSection: "Publications",
     usersSection: "People",
+    questionsSection: "Questions",
+    pollsSection: "Polls",
+    groupsSection: "Groups",
+    groupPostsSection: "Group posts",
   },
   material: {
     embedUrl: "Embed URL",
@@ -1899,6 +1926,14 @@ const en: Dictionary = {
     publish: "Publish",
     backToProfile: "← Back to author",
     referencesTitle: "Linked with",
+    importButton: "Import from URL",
+    importTitle: "Import publication from a URL",
+    importHint:
+      "A Substack post, a public Telegram channel post, or any HTML page with og:title. Creates a draft publication you can edit.",
+    importUrlPlaceholder: "https://example.substack.com/p/article-slug",
+    importPreview: "Fetch preview",
+    importCreate: "Create publication",
+    importedFrom: "Imported from",
   },
   products: {
     title: "Services and products",

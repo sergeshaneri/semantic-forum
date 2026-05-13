@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MobileNav } from "@/components/socionics/mobile-nav";
 import { NotificationBell } from "@/components/socionics/notification-bell";
 import { OnboardingLauncher } from "@/components/socionics/onboarding-launcher";
 import { OnboardingTour } from "@/components/socionics/onboarding-tour";
@@ -42,8 +43,12 @@ export default async function LocaleLayout({
     <SessionProvider user={sessionUser}>
     <div className="flex flex-col min-h-screen">
       <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur z-30">
-        <div className="mx-auto max-w-6xl px-6 py-3 flex items-center gap-4">
-          <Link href={`/${lang}`} className="font-heading text-lg font-semibold shrink-0">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center gap-3 sm:gap-4">
+          <MobileNav lang={lang} dict={dict} isAuthed={Boolean(session?.user)} />
+          <Link
+            href={`/${lang}`}
+            className="font-heading text-base sm:text-lg font-semibold shrink-0 truncate"
+          >
             {dict.appName}
           </Link>
           <nav className="hidden md:flex items-center gap-5 text-sm">
@@ -91,9 +96,13 @@ export default async function LocaleLayout({
             </Link>
           </nav>
           <div className="flex-1" />
-          <SearchBar lang={lang} dict={dict} />
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
+          <div className="hidden sm:block">
+            <SearchBar lang={lang} dict={dict} />
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
             <Link
               href={`/${otherLang}`}
               className="text-muted-foreground hover:text-foreground transition-colors uppercase text-sm"
@@ -105,7 +114,7 @@ export default async function LocaleLayout({
                 <NotificationBell lang={lang} dict={dict} />
                 <Link
                   href={`/${lang}/messages`}
-                  className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"
+                  className="hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"
                   title={dict.dm.title}
                 >
                   <svg
@@ -123,7 +132,7 @@ export default async function LocaleLayout({
                 </Link>
                 <Link
                   href={`/${lang}/bookmarks`}
-                  className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"
+                  className="hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"
                   title={dict.bookmarks.title}
                 >
                   <svg
@@ -154,13 +163,13 @@ export default async function LocaleLayout({
               <>
                 <Link
                   href={`/${lang}/login`}
-                  className="text-foreground hover:opacity-80 transition-opacity text-sm"
+                  className="hidden sm:inline text-foreground hover:opacity-80 transition-opacity text-sm"
                 >
                   {dict.nav.login}
                 </Link>
                 <Link
                   href={`/${lang}/register`}
-                  className="rounded-md bg-foreground text-background px-3 py-1.5 hover:opacity-90 transition-opacity text-sm"
+                  className="rounded-md bg-foreground text-background px-2.5 sm:px-3 py-1.5 hover:opacity-90 transition-opacity text-sm whitespace-nowrap"
                 >
                   {dict.nav.register}
                 </Link>

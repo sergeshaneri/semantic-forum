@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImportPublicationButton } from "@/components/socionics/import-publication";
 import { trpc } from "@/lib/trpc/react";
 import { slugify } from "@/lib/slug";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
@@ -54,9 +55,16 @@ export function ProfilePublications({
           {dict.publications.title}
         </h2>
         {isSelf && !adding && (
-          <Button size="sm" onClick={() => setAdding(true)}>
-            + {dict.publications.addButton}
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <ImportPublicationButton
+              username={username}
+              lang={lang}
+              dict={dict}
+            />
+            <Button size="sm" onClick={() => setAdding(true)}>
+              + {dict.publications.addButton}
+            </Button>
+          </div>
         )}
       </div>
 

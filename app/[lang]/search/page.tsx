@@ -37,7 +37,11 @@ export default function SearchPage({
     ? r.entities.length +
       r.theories.length +
       r.publications.length +
-      r.users.length
+      r.users.length +
+      r.questions.length +
+      r.polls.length +
+      r.groups.length +
+      r.groupPosts.length
     : 0;
 
   return (
@@ -115,6 +119,58 @@ export default function SearchPage({
                   title={u.name || `@${u.username}`}
                   subtitle={u.subtitle ?? `@${u.username}`}
                   badge="user"
+                />
+              ))}
+            </Section>
+          )}
+          {r && r.questions.length > 0 && (
+            <Section title={dict.search.questionsSection}>
+              {r.questions.map((q) => (
+                <ResultRow
+                  key={q.id}
+                  href={`/${lang}/questions/${q.slug}`}
+                  title={q.title}
+                  subtitle={q.subtitle}
+                  badge={q.isResolved ? "resolved" : "question"}
+                />
+              ))}
+            </Section>
+          )}
+          {r && r.polls.length > 0 && (
+            <Section title={dict.search.pollsSection}>
+              {r.polls.map((p) => (
+                <ResultRow
+                  key={p.id}
+                  href={`/${lang}/polls/${p.slug}`}
+                  title={p.question}
+                  subtitle={p.subtitle}
+                  badge="poll"
+                />
+              ))}
+            </Section>
+          )}
+          {r && r.groups.length > 0 && (
+            <Section title={dict.search.groupsSection}>
+              {r.groups.map((g) => (
+                <ResultRow
+                  key={g.id}
+                  href={`/${lang}/groups/${g.slug}`}
+                  title={g.name}
+                  subtitle={g.subtitle}
+                  badge="group"
+                />
+              ))}
+            </Section>
+          )}
+          {r && r.groupPosts.length > 0 && (
+            <Section title={dict.search.groupPostsSection}>
+              {r.groupPosts.map((p) => (
+                <ResultRow
+                  key={p.id}
+                  href={`/${lang}/groups/${p.groupSlug}/posts/${p.slug}`}
+                  title={p.title}
+                  subtitle={p.subtitle}
+                  badge="post"
                 />
               ))}
             </Section>
