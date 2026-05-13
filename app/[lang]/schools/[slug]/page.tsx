@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AddToCollectionMenu } from "@/components/socionics/add-to-collection-menu";
 import { BookmarkButton } from "@/components/socionics/bookmark-button";
 import { Markdown } from "@/components/socionics/markdown";
 import { SchoolSourceForm } from "@/components/socionics/school-source-form";
@@ -62,12 +63,19 @@ export default async function SchoolPage({
               {school.foundedPlace ? ` · ${school.foundedPlace}` : ""}
             </span>
           )}
-          <span className="ml-auto">
+          <span className="ml-auto inline-flex items-center gap-2">
             <BookmarkButton
               targetType="entity"
               targetId={school.id}
               isAuthed={isAuthed}
               loginHref={`/${lang}/login?callbackUrl=/${lang}/schools/${school.slug}`}
+            />
+            <AddToCollectionMenu
+              targetType="school"
+              targetId={school.id}
+              isAuthed={isAuthed}
+              loginHref={`/${lang}/login?callbackUrl=/${lang}/schools/${school.slug}`}
+              dict={dict}
             />
           </span>
         </div>

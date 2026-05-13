@@ -124,6 +124,15 @@ export type Dictionary = {
     available: string;
     seeking: string;
     flagsTitle: string;
+    pageTitle: string;
+    pageSubtitle: string;
+    tabAvailable: string;
+    tabSeeking: string;
+    emptyAvailable: string;
+    emptySeeking: string;
+    contact: string;
+    contactNoChannel: string;
+    karmaShort: string;
   };
   collections: {
     title: string;
@@ -139,6 +148,16 @@ export type Dictionary = {
     backToOwner: string;
     addItemTitle: string;
     addItemHint: string;
+    menu: {
+      buttonTitle: string;
+      heading: string;
+      empty: string;
+      newCollection: string;
+      newPlaceholder: string;
+      createButton: string;
+      loginToSave: string;
+      savedInCount: string;
+    };
   };
   leaderboard: {
     title: string;
@@ -587,6 +606,16 @@ const ru: Dictionary = {
     available: "Я могу менторить",
     seeking: "Ищу ментора",
     flagsTitle: "Менторство",
+    pageTitle: "Менторство",
+    pageSubtitle:
+      "Найди ментора или предложи свою помощь. Менторы и ищущие отмечают это в настройках профиля.",
+    tabAvailable: "Доступны",
+    tabSeeking: "Ищут",
+    emptyAvailable: "Пока никто не открыл менторство.",
+    emptySeeking: "Пока никто не ищет ментора.",
+    contact: "Связаться",
+    contactNoChannel: "Связь через профиль",
+    karmaShort: "карма",
   },
   collections: {
     title: "Коллекции",
@@ -603,6 +632,16 @@ const ru: Dictionary = {
     backToOwner: "← К автору",
     addItemTitle: "В коллекцию",
     addItemHint: "Выбери одну из своих коллекций или создай новую.",
+    menu: {
+      buttonTitle: "В коллекцию",
+      heading: "Сохранить в коллекцию",
+      empty: "У тебя пока нет коллекций.",
+      newCollection: "+ Новая коллекция",
+      newPlaceholder: "Название новой коллекции",
+      createButton: "Создать",
+      loginToSave: "Войди, чтобы сохранять",
+      savedInCount: "сохранено в",
+    },
   },
   leaderboard: {
     title: "Рейтинг",
@@ -1074,6 +1113,16 @@ const en: Dictionary = {
     available: "I can mentor",
     seeking: "Seeking a mentor",
     flagsTitle: "Mentorship",
+    pageTitle: "Mentorship",
+    pageSubtitle:
+      "Find a mentor or offer your help. Mentors and seekers flag this in profile settings.",
+    tabAvailable: "Available",
+    tabSeeking: "Seeking",
+    emptyAvailable: "Nobody is offering mentorship yet.",
+    emptySeeking: "Nobody is seeking a mentor yet.",
+    contact: "Contact",
+    contactNoChannel: "Contact via profile",
+    karmaShort: "karma",
   },
   collections: {
     title: "Collections",
@@ -1090,6 +1139,16 @@ const en: Dictionary = {
     backToOwner: "← Back to author",
     addItemTitle: "Add to collection",
     addItemHint: "Pick one of your collections or create new.",
+    menu: {
+      buttonTitle: "Add to collection",
+      heading: "Save to a collection",
+      empty: "You don't have any collections yet.",
+      newCollection: "+ New collection",
+      newPlaceholder: "New collection name",
+      createButton: "Create",
+      loginToSave: "Sign in to save",
+      savedInCount: "saved in",
+    },
   },
   leaderboard: {
     title: "Leaderboard",

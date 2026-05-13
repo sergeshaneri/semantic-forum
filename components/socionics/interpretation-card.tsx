@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AddToCollectionMenu } from "@/components/socionics/add-to-collection-menu";
 import { BookmarkButton } from "@/components/socionics/bookmark-button";
 import { Markdown } from "@/components/socionics/markdown";
 import { VoteWidget } from "@/components/socionics/vote-widget";
@@ -154,6 +155,14 @@ export function InterpretationCard({
                   targetId={i.id}
                   isAuthed={isAuthed}
                   loginHref={loginHref}
+                  size="sm"
+                />
+                <AddToCollectionMenu
+                  targetType="interpretation"
+                  targetId={i.id}
+                  isAuthed={isAuthed}
+                  loginHref={loginHref}
+                  dict={dict}
                   size="sm"
                 />
                 {isOwner && !editing && (

@@ -145,6 +145,12 @@ export default async function LocaleLayout({
             >
               {dict.leaderboard.title}
             </Link>
+            <Link
+              href={`/${lang}/mentors`}
+              className="hover:text-foreground transition-colors"
+            >
+              {dict.mentor.pageTitle}
+            </Link>
             {sessionUser && (
               <Link
                 href={`/${lang}/collections`}

@@ -421,6 +421,93 @@ export const userRouter = createTRPCRouter({
       return { ok: true as const };
     }),
 
+  mentorList: publicProcedure
+    .input(
+      z.object({
+        kind: z.enum(["available", "seeking"]),
+        limit: z.number().int().min(1).max(100).default(50),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const flagCol =
+        input.kind === "available" ? "mentor_available" : "mentor_seeking";
+      const rows = await ctx.db.execute<{
+        user_id: string;
+        username: string;
+        name: string;
+        image: string | null;
+        bio: string | null;
+        roles: string[] | null;
+        karma: number;
+      }>(sql`
+        SELECT
+          u.id AS user_id,
+          u.username AS username,
+          u.name AS name,
+          u.image AS image,
+          u.bio AS bio,
+          u.roles AS roles,
+          COALESCE((
+            SELECT SUM(v.value)::int
+            FROM votes v
+            WHERE
+              (v.target_type = 'interpretation' AND v.target_id IN (
+                SELECT id FROM interpretations WHERE author_id = u.id
+              ))
+              OR (v.target_type = 'comment' AND v.target_id IN (
+                SELECT id FROM comments WHERE author_id = u.id
+              ))
+          ), 0) AS karma
+        FROM users u
+        WHERE u.username IS NOT NULL AND u.${sql.raw(flagCol)} = true
+        ORDER BY karma DESC, u.created_at DESC
+        LIMIT ${input.limit}
+      `);
+
+      const userIds = rows.map((r) => r.user_id);
+      const schoolsByUser = new Map<
+        string,
+        { id: string; slug: string; name: string; language: string }[]
+      >();
+      if (userIds.length > 0) {
+        const userSchoolRows = await ctx.db.query.userSchools.findMany({
+          where: (us, { inArray }) => inArray(us.userId, userIds),
+          with: {
+            school: {
+              columns: {
+                id: true,
+                slug: true,
+                name: true,
+                language: true,
+              },
+            },
+          },
+        });
+        for (const us of userSchoolRows) {
+          if (!us.school) continue;
+          const arr = schoolsByUser.get(us.userId) ?? [];
+          arr.push({
+            id: us.school.id,
+            slug: us.school.slug,
+            name: us.school.name,
+            language: us.school.language,
+          });
+          schoolsByUser.set(us.userId, arr);
+        }
+      }
+
+      return rows.map((r) => ({
+        id: r.user_id,
+        username: r.username,
+        name: r.name,
+        image: r.image,
+        bio: r.bio,
+        roles: (r.roles ?? []) as string[],
+        karma: Number(r.karma),
+        schools: schoolsByUser.get(r.user_id) ?? [],
+      }));
+    }),
+
   feed: protectedProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db
       .select({ followingId: follows.followingId })

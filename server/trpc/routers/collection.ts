@@ -27,22 +27,54 @@ const slugSchema = z
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
 export const collectionRouter = createTRPCRouter({
-  mine: protectedProcedure.query(async ({ ctx }) => {
-    const rows = await ctx.db.query.collections.findMany({
-      where: eq(collections.userId, ctx.userId),
-      orderBy: [desc(collections.createdAt)],
-      with: { items: { columns: { collectionId: true } } },
-    });
-    return rows.map((c) => ({
-      id: c.id,
-      slug: c.slug,
-      name: c.name,
-      description: c.description,
-      isPublic: c.isPublic,
-      itemCount: c.items.length,
-      createdAt: c.createdAt,
-    }));
-  }),
+  mine: protectedProcedure
+    .input(
+      z
+        .object({
+          containing: z
+            .object({
+              targetType: targetSchema,
+              targetId: z.string(),
+            })
+            .optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      const target = input?.containing;
+      const rows = await ctx.db.query.collections.findMany({
+        where: eq(collections.userId, ctx.userId),
+        orderBy: [desc(collections.createdAt)],
+        with: {
+          items: target
+            ? {
+                columns: {
+                  collectionId: true,
+                  targetType: true,
+                  targetId: true,
+                },
+              }
+            : { columns: { collectionId: true } },
+        },
+      });
+      return rows.map((c) => ({
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        description: c.description,
+        isPublic: c.isPublic,
+        itemCount: c.items.length,
+        contains: target
+          ? c.items.some(
+              (it) =>
+                "targetType" in it &&
+                it.targetType === target.targetType &&
+                it.targetId === target.targetId,
+            )
+          : false,
+        createdAt: c.createdAt,
+      }));
+    }),
 
   listByUser: publicProcedure
     .input(z.object({ username: z.string() }))

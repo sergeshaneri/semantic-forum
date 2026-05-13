@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,13 @@ import { trpc } from "@/lib/trpc/react";
 import { slugify } from "@/lib/slug";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
+
+type RefKind = "entity" | "theory";
+type RefItem = {
+  targetType: RefKind;
+  targetId: string;
+  label: string;
+};
 
 type Publication = {
   id: string;
@@ -126,6 +133,7 @@ function AddPublicationForm({
   const [body, setBody] = useState("");
   const [externalUrl, setExternalUrl] = useState("");
   const [tagsText, setTagsText] = useState("");
+  const [refs, setRefs] = useState<RefItem[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   function onTitleChange(value: string) {
@@ -149,7 +157,10 @@ function AddPublicationForm({
         externalUrl: externalUrl || undefined,
         language: lang,
         tags: tagsArr,
-        references: [],
+        references: refs.map((r) => ({
+          targetType: r.targetType,
+          targetId: r.targetId,
+        })),
       });
       onCreated();
       router.push(`/${lang}/u/${username}/p/${r.slug}`);
@@ -253,6 +264,13 @@ function AddPublicationForm({
             </p>
           </div>
 
+          <ReferencesPicker
+            lang={lang}
+            dict={dict}
+            refs={refs}
+            onChange={setRefs}
+          />
+
           {error && (
             <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
           )}
@@ -284,5 +302,163 @@ function AddPublicationForm({
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+function ReferencesPicker({
+  lang,
+  dict,
+  refs,
+  onChange,
+}: {
+  lang: Locale;
+  dict: Dictionary;
+  refs: RefItem[];
+  onChange: (r: RefItem[]) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query.trim()), 250);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const searchQuery = trpc.search.global.useQuery(
+    { q: debounced, language: lang, limit: 6 },
+    { enabled: debounced.length >= 2, staleTime: 30_000 },
+  );
+
+  const taken = new Set(refs.map((r) => `${r.targetType}:${r.targetId}`));
+
+  function add(item: RefItem) {
+    if (taken.has(`${item.targetType}:${item.targetId}`)) return;
+    if (refs.length >= 10) return;
+    onChange([...refs, item]);
+    setQuery("");
+    setDebounced("");
+  }
+
+  function remove(item: RefItem) {
+    onChange(
+      refs.filter(
+        (r) =>
+          !(r.targetType === item.targetType && r.targetId === item.targetId),
+      ),
+    );
+  }
+
+  const entities = (searchQuery.data?.entities ?? []).filter(
+    (e) => !taken.has(`entity:${e.id}`),
+  );
+  const theories = (searchQuery.data?.theories ?? []).filter(
+    (t) => !taken.has(`theory:${t.id}`),
+  );
+
+  return (
+    <div className="space-y-2">
+      <Label>{dict.publications.referencesTitle}</Label>
+      {refs.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {refs.map((r) => (
+            <span
+              key={`${r.targetType}:${r.targetId}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs"
+            >
+              <span className="text-muted-foreground font-mono uppercase tracking-wider text-[10px]">
+                {r.targetType === "entity"
+                  ? dict.bookmarks.types.entity
+                  : dict.bookmarks.types.theory}
+              </span>
+              <span>{r.label}</span>
+              <button
+                type="button"
+                onClick={() => remove(r)}
+                className="text-muted-foreground hover:text-rose-600 transition-colors"
+                aria-label="remove"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="relative">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={dict.search.placeholder}
+          maxLength={120}
+        />
+        {debounced.length >= 2 &&
+          (entities.length > 0 || theories.length > 0) && (
+            <div className="absolute left-0 right-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-background shadow-md text-sm">
+              {entities.length > 0 && (
+                <div>
+                  <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground bg-muted/30 border-b border-border/50">
+                    {dict.search.entitiesSection}
+                  </div>
+                  <ul>
+                    {entities.map((e) => (
+                      <li key={e.id}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            add({
+                              targetType: "entity",
+                              targetId: e.id,
+                              label: e.title,
+                            })
+                          }
+                          className="w-full text-left px-2 py-1.5 hover:bg-muted"
+                        >
+                          <span className="font-medium">{e.title}</span>
+                          {e.subtitle && (
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              {e.subtitle}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {theories.length > 0 && (
+                <div>
+                  <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground bg-muted/30 border-b border-border/50">
+                    {dict.search.theoriesSection}
+                  </div>
+                  <ul>
+                    {theories.map((t) => (
+                      <li key={t.id}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            add({
+                              targetType: "theory",
+                              targetId: t.id,
+                              label: t.name,
+                            })
+                          }
+                          className="w-full text-left px-2 py-1.5 hover:bg-muted"
+                        >
+                          <span className="font-medium">{t.name}</span>
+                          {t.subtitle && (
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              {t.subtitle}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+      </div>
+    </div>
   );
 }

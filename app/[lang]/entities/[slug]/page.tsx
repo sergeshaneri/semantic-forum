@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AddInterpretationForm } from "@/components/socionics/add-interpretation-form";
+import { AddToCollectionMenu } from "@/components/socionics/add-to-collection-menu";
 import { BookmarkButton } from "@/components/socionics/bookmark-button";
 import { EntityHeaderActions } from "@/components/socionics/entity-header-actions";
 import { EntityRelations } from "@/components/socionics/entity-relations";
@@ -84,6 +85,13 @@ export default async function EntityPage({
               targetId={entity.id}
               isAuthed={isAuthed}
               loginHref={`/${lang}/login?callbackUrl=/${lang}/entities/${entity.slug}`}
+            />
+            <AddToCollectionMenu
+              targetType="entity"
+              targetId={entity.id}
+              isAuthed={isAuthed}
+              loginHref={`/${lang}/login?callbackUrl=/${lang}/entities/${entity.slug}`}
+              dict={dict}
             />
             {isEntityOwner && (
               <EntityHeaderActions
