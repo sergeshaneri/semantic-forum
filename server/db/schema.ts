@@ -95,7 +95,21 @@ export const theoryObjectKindEnum = pgEnum("theory_object_kind", [
   "custom",
 ]);
 export const stanceEnum = pgEnum("stance", ["pro", "contra", "neutral"]);
-export const voteTargetEnum = pgEnum("vote_target", ["interpretation", "comment"]);
+export const voteTargetEnum = pgEnum("vote_target", [
+  "interpretation",
+  "comment",
+  "answer",
+]);
+export const eventKindEnum = pgEnum("event_kind", [
+  "online",
+  "offline",
+  "hybrid",
+]);
+export const rsvpStatusEnum = pgEnum("rsvp_status", [
+  "going",
+  "maybe",
+  "interested",
+]);
 export const entityRelationKindEnum = pgEnum("entity_relation_kind", [
   "related",
   "synonym",
@@ -310,6 +324,78 @@ export const collectionItems = pgTable(
       columns: [t.collectionId, t.targetType, t.targetId],
     }),
   ],
+);
+
+export const questions = pgTable(
+  "questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    authorId: text("author_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    title: varchar("title", { length: 300 }).notNull(),
+    slug: varchar("slug", { length: 200 }).notNull(),
+    body: text("body").notNull(),
+    language: langEnum("language").notNull(),
+    isResolved: boolean("is_resolved").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
+  },
+  (t) => [uniqueIndex("questions_slug_lang_idx").on(t.slug, t.language)],
+);
+
+export const answers = pgTable("answers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  questionId: uuid("question_id")
+    .notNull()
+    .references(() => questions.id, { onDelete: "cascade" }),
+  authorId: text("author_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  body: text("body").notNull(),
+  isAccepted: boolean("is_accepted").default(false).notNull(),
+  votesUp: integer("votes_up").default(0).notNull(),
+  votesDown: integer("votes_down").default(0).notNull(),
+  score: integer("score").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const events = pgTable(
+  "events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizerId: text("organizer_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    title: varchar("title", { length: 300 }).notNull(),
+    slug: varchar("slug", { length: 200 }).notNull(),
+    description: text("description").notNull(),
+    kind: eventKindEnum("kind").notNull(),
+    startAt: timestamp("start_at").notNull(),
+    endAt: timestamp("end_at"),
+    location: varchar("location", { length: 300 }),
+    locationUrl: varchar("location_url", { length: 500 }),
+    language: langEnum("language").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
+  },
+  (t) => [uniqueIndex("events_slug_lang_idx").on(t.slug, t.language)],
+);
+
+export const eventAttendees = pgTable(
+  "event_attendees",
+  {
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: rsvpStatusEnum("status").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.eventId, t.userId] })],
 );
 
 export const productReviews = pgTable(
@@ -745,6 +831,44 @@ export const collectionItemsRelations = relations(
     }),
   }),
 );
+
+export const questionsRelations = relations(questions, ({ one, many }) => ({
+  author: one(users, {
+    fields: [questions.authorId],
+    references: [users.id],
+  }),
+  answers: many(answers),
+}));
+
+export const answersRelations = relations(answers, ({ one }) => ({
+  question: one(questions, {
+    fields: [answers.questionId],
+    references: [questions.id],
+  }),
+  author: one(users, {
+    fields: [answers.authorId],
+    references: [users.id],
+  }),
+}));
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  organizer: one(users, {
+    fields: [events.organizerId],
+    references: [users.id],
+  }),
+  attendees: many(eventAttendees),
+}));
+
+export const eventAttendeesRelations = relations(eventAttendees, ({ one }) => ({
+  event: one(events, {
+    fields: [eventAttendees.eventId],
+    references: [events.id],
+  }),
+  user: one(users, {
+    fields: [eventAttendees.userId],
+    references: [users.id],
+  }),
+}));
 
 export const followsRelations = relations(follows, ({ one }) => ({
   follower: one(users, {

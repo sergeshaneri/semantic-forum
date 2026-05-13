@@ -162,6 +162,49 @@ export type Dictionary = {
       string
     >;
   };
+  questions: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    askButton: string;
+    loginToAsk: string;
+    loginToAnswer: string;
+    formTitle: string;
+    titlePlaceholder: string;
+    formBody: string;
+    bodyPlaceholder: string;
+    bodyHint: string;
+    resolved: string;
+    answersWord: string;
+    answersShort: string;
+    answerButton: string;
+    answerPlaceholder: string;
+    publishAnswer: string;
+    acceptButton: string;
+    acceptedLabel: string;
+  };
+  events: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    addButton: string;
+    loginToAdd: string;
+    formTitle: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    location: string;
+    locationPlaceholder: string;
+    locationUrl: string;
+    publish: string;
+    organizerLabel: string;
+    rsvpTitle: string;
+    rsvpLogin: string;
+    attendeesShort: string;
+    attendeesTitle: string;
+    kinds: Record<"online" | "offline" | "hybrid", string>;
+    rsvp: Record<"going" | "maybe" | "interested", string>;
+  };
   theories: {
     title: string;
     subtitle: string;
@@ -584,6 +627,57 @@ const ru: Dictionary = {
       expert: "Эксперт",
       mentor: "Ментор",
       creator: "Создатель",
+    },
+  },
+  questions: {
+    title: "Вопросы",
+    subtitle: "Задай вопрос сообществу. Лучшие ответы поднимаются голосами, автор вопроса может принять один как «решающий».",
+    empty: "Вопросов пока нет.",
+    askButton: "Задать вопрос",
+    loginToAsk: "Войди чтобы задать вопрос",
+    loginToAnswer: "Войди чтобы ответить",
+    formTitle: "Заголовок вопроса",
+    titlePlaceholder: "Как отличить БИ от БЛ в проявлении у личности?",
+    formBody: "Текст вопроса",
+    bodyPlaceholder: "Опиши контекст и что именно тебя интересует...",
+    bodyHint: "Markdown + цитирования [[Сущность]] работают.",
+    resolved: "Решён",
+    answersWord: "ответов",
+    answersShort: "отв.",
+    answerButton: "Ответить",
+    answerPlaceholder: "Развёрнутый ответ с обоснованием...",
+    publishAnswer: "Опубликовать ответ",
+    acceptButton: "Принять как решение",
+    acceptedLabel: "Принят",
+  },
+  events: {
+    title: "События",
+    subtitle: "Митапы, вебинары, воркшопы. RSVP помогает оценить аудиторию.",
+    empty: "Предстоящих событий пока нет.",
+    addButton: "Создать событие",
+    loginToAdd: "Войди чтобы добавить",
+    formTitle: "Название",
+    description: "Описание",
+    startAt: "Начало",
+    endAt: "Конец (опц.)",
+    location: "Место",
+    locationPlaceholder: "Москва, Москва-Сити, 5 этаж",
+    locationUrl: "Ссылка (Zoom / карта)",
+    publish: "Опубликовать",
+    organizerLabel: "Организатор",
+    rsvpTitle: "Твой ответ",
+    rsvpLogin: "Войди чтобы откликнуться",
+    attendeesShort: "уч.",
+    attendeesTitle: "Участники",
+    kinds: {
+      online: "Онлайн",
+      offline: "Оффлайн",
+      hybrid: "Гибрид",
+    },
+    rsvp: {
+      going: "Иду",
+      maybe: "Возможно",
+      interested: "Интересно",
     },
   },
   theories: {
@@ -1020,6 +1114,57 @@ const en: Dictionary = {
       expert: "Expert",
       mentor: "Mentor",
       creator: "Creator",
+    },
+  },
+  questions: {
+    title: "Questions",
+    subtitle: "Ask the community. Best answers float to the top by votes, the asker can mark one as accepted.",
+    empty: "No questions yet.",
+    askButton: "Ask a question",
+    loginToAsk: "Sign in to ask",
+    loginToAnswer: "Sign in to answer",
+    formTitle: "Question title",
+    titlePlaceholder: "How to tell BI from BL in person's behavior?",
+    formBody: "Question body",
+    bodyPlaceholder: "Describe context and what you actually want to know...",
+    bodyHint: "Markdown + [[Entity]] citations work.",
+    resolved: "Resolved",
+    answersWord: "answers",
+    answersShort: "ans.",
+    answerButton: "Answer",
+    answerPlaceholder: "Reasoned answer with grounding...",
+    publishAnswer: "Publish answer",
+    acceptButton: "Accept as solution",
+    acceptedLabel: "Accepted",
+  },
+  events: {
+    title: "Events",
+    subtitle: "Meetups, webinars, workshops. RSVP shows interest.",
+    empty: "No upcoming events.",
+    addButton: "Create event",
+    loginToAdd: "Sign in to add",
+    formTitle: "Title",
+    description: "Description",
+    startAt: "Start",
+    endAt: "End (opt.)",
+    location: "Location",
+    locationPlaceholder: "Moscow, Moscow City, floor 5",
+    locationUrl: "Link (Zoom / map)",
+    publish: "Publish",
+    organizerLabel: "Organizer",
+    rsvpTitle: "Your reply",
+    rsvpLogin: "Sign in to RSVP",
+    attendeesShort: "att.",
+    attendeesTitle: "Attendees",
+    kinds: {
+      online: "Online",
+      offline: "Offline",
+      hybrid: "Hybrid",
+    },
+    rsvp: {
+      going: "Going",
+      maybe: "Maybe",
+      interested: "Interested",
     },
   },
   theories: {

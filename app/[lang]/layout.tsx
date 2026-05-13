@@ -61,6 +61,18 @@ export default async function LocaleLayout({
             >
               {dict.schools.title}
             </Link>
+            <Link
+              href={`/${lang}/questions`}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {dict.questions.title}
+            </Link>
+            <Link
+              href={`/${lang}/events`}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {dict.events.title}
+            </Link>
           </nav>
           <div className="flex-1" />
           <SearchBar lang={lang} dict={dict} />

@@ -1,17 +1,22 @@
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { comments, interpretations, votes } from "@/server/db/schema";
+import {
+  answers,
+  comments,
+  interpretations,
+  votes,
+} from "@/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../init";
 
 const castSchema = z.object({
-  targetType: z.enum(["interpretation", "comment"]),
+  targetType: z.enum(["interpretation", "comment", "answer"]),
   targetId: z.string().uuid(),
   value: z.union([z.literal(1), z.literal(-1)]),
 });
 
 async function recountTarget(
   db: typeof import("@/server/db").db,
-  targetType: "interpretation" | "comment",
+  targetType: "interpretation" | "comment" | "answer",
   targetId: string,
 ) {
   const [agg] = await db
@@ -32,11 +37,16 @@ async function recountTarget(
       .update(interpretations)
       .set({ votesUp: up, votesDown: down, score: up - down })
       .where(eq(interpretations.id, targetId));
-  } else {
+  } else if (targetType === "comment") {
     await db
       .update(comments)
       .set({ votesUp: up, votesDown: down })
       .where(eq(comments.id, targetId));
+  } else {
+    await db
+      .update(answers)
+      .set({ votesUp: up, votesDown: down, score: up - down })
+      .where(eq(answers.id, targetId));
   }
 
   return { votesUp: up, votesDown: down, score: up - down };

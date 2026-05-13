@@ -6,12 +6,14 @@ import { collectionRouter } from "./routers/collection";
 import { commentRouter } from "./routers/comment";
 import { entityRouter } from "./routers/entity";
 import { entityRelationRouter } from "./routers/entityRelation";
+import { eventRouter } from "./routers/event";
 import { healthRouter } from "./routers/health";
 import { interpretationRouter } from "./routers/interpretation";
 import { leaderboardRouter } from "./routers/leaderboard";
 import { notificationRouter } from "./routers/notification";
 import { productRouter } from "./routers/product";
 import { publicationRouter } from "./routers/publication";
+import { answerRouter, questionRouter } from "./routers/question";
 import { schoolRouter, sourceRouter } from "./routers/school";
 import { searchRouter } from "./routers/search";
 import { theoryRouter } from "./routers/theory";
@@ -44,6 +46,9 @@ export const appRouter = createTRPCRouter({
   trending: trendingRouter,
   leaderboard: leaderboardRouter,
   collection: collectionRouter,
+  question: questionRouter,
+  answer: answerRouter,
+  event: eventRouter,
 });
 
 export type AppRouter = typeof appRouter;
