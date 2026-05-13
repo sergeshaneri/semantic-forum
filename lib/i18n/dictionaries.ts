@@ -125,6 +125,43 @@ export type Dictionary = {
     seeking: string;
     flagsTitle: string;
   };
+  collections: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    create: string;
+    name: string;
+    namePlaceholder: string;
+    description: string;
+    isPublic: string;
+    privateLabel: string;
+    itemsShort: string;
+    backToOwner: string;
+    addItemTitle: string;
+    addItemHint: string;
+  };
+  leaderboard: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    ranges: Record<"week" | "month" | "all", string>;
+  };
+  badges: {
+    title: string;
+    labels: Record<
+      | "first_interpretation"
+      | "author_10"
+      | "author_50"
+      | "commentator_25"
+      | "theorist"
+      | "forked"
+      | "voice"
+      | "expert"
+      | "mentor"
+      | "creator",
+      string
+    >;
+  };
   theories: {
     title: string;
     subtitle: string;
@@ -507,6 +544,47 @@ const ru: Dictionary = {
     available: "Я могу менторить",
     seeking: "Ищу ментора",
     flagsTitle: "Менторство",
+  },
+  collections: {
+    title: "Коллекции",
+    subtitle:
+      "Курируемые подборки — собирай сущности, теории, статьи и продукты в тематические списки.",
+    empty: "Коллекций пока нет. Создай первую.",
+    create: "Создать коллекцию",
+    name: "Название",
+    namePlaceholder: "Лучшие интерпретации про БИ",
+    description: "Описание",
+    isPublic: "Публичная (видна всем)",
+    privateLabel: "Приватная",
+    itemsShort: "элем.",
+    backToOwner: "← К автору",
+    addItemTitle: "В коллекцию",
+    addItemHint: "Выбери одну из своих коллекций или создай новую.",
+  },
+  leaderboard: {
+    title: "Рейтинг",
+    subtitle: "Топ пользователей по карме за период.",
+    empty: "Пока нет голосов в этом периоде.",
+    ranges: {
+      week: "Неделя",
+      month: "Месяц",
+      all: "Всё время",
+    },
+  },
+  badges: {
+    title: "Бейджи",
+    labels: {
+      first_interpretation: "Первый шаг",
+      author_10: "Автор × 10",
+      author_50: "Автор × 50",
+      commentator_25: "Комментатор × 25",
+      theorist: "Теоретик",
+      forked: "Школа форков",
+      voice: "Голос сообщества",
+      expert: "Эксперт",
+      mentor: "Ментор",
+      creator: "Создатель",
+    },
   },
   theories: {
     title: "Теории",
@@ -902,6 +980,47 @@ const en: Dictionary = {
     available: "I can mentor",
     seeking: "Seeking a mentor",
     flagsTitle: "Mentorship",
+  },
+  collections: {
+    title: "Collections",
+    subtitle:
+      "Curated lists — group entities, theories, articles, products into themed sets.",
+    empty: "No collections yet. Create your first.",
+    create: "Create collection",
+    name: "Name",
+    namePlaceholder: "Best interpretations of white intuition",
+    description: "Description",
+    isPublic: "Public (visible to all)",
+    privateLabel: "Private",
+    itemsShort: "items",
+    backToOwner: "← Back to author",
+    addItemTitle: "Add to collection",
+    addItemHint: "Pick one of your collections or create new.",
+  },
+  leaderboard: {
+    title: "Leaderboard",
+    subtitle: "Top users by karma over time range.",
+    empty: "No votes yet in this range.",
+    ranges: {
+      week: "Week",
+      month: "Month",
+      all: "All time",
+    },
+  },
+  badges: {
+    title: "Badges",
+    labels: {
+      first_interpretation: "First step",
+      author_10: "Author × 10",
+      author_50: "Author × 50",
+      commentator_25: "Commenter × 25",
+      theorist: "Theorist",
+      forked: "Forker",
+      voice: "Community voice",
+      expert: "Expert",
+      mentor: "Mentor",
+      creator: "Creator",
+    },
   },
   theories: {
     title: "Theories",

@@ -7,6 +7,7 @@ import {
   theories,
   votes,
 } from "@/server/db/schema";
+import { expandCitations } from "@/lib/citations";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../init";
 
 const langSchema = z.enum(["ru", "en"]);
@@ -294,22 +295,30 @@ export const entityRouter = createTRPCRouter({
         }
       }
 
+      const descExpanded = await expandCitations(
+        entity.descriptionWiki ?? "",
+        input.language,
+      );
+      const expandedBodies = await Promise.all(
+        filtered.map((i) => expandCitations(i.body, input.language)),
+      );
+
       return {
         entity: {
           id: entity.id,
           slug: entity.slug,
           title: entity.title,
           kind: entity.kind,
-          descriptionWiki: entity.descriptionWiki ?? "",
+          descriptionWiki: descExpanded,
           embedUrl: entity.embedUrl,
           sourceUrl: entity.sourceUrl,
           tags: [] as string[],
           createdBy: entity.createdBy,
         },
         theoryChoices,
-        interpretations: filtered.map((i) => ({
+        interpretations: filtered.map((i, idx) => ({
           id: i.id,
-          body: i.body,
+          body: expandedBodies[idx]!,
           votesUp: i.votesUp,
           votesDown: i.votesDown,
           score: i.score,

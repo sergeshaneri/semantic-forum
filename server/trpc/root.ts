@@ -2,11 +2,13 @@ import { createCallerFactory, createTRPCRouter } from "./init";
 import { affiliationRouter } from "./routers/affiliation";
 import { authRouter } from "./routers/auth";
 import { bookmarkRouter } from "./routers/bookmark";
+import { collectionRouter } from "./routers/collection";
 import { commentRouter } from "./routers/comment";
 import { entityRouter } from "./routers/entity";
 import { entityRelationRouter } from "./routers/entityRelation";
 import { healthRouter } from "./routers/health";
 import { interpretationRouter } from "./routers/interpretation";
+import { leaderboardRouter } from "./routers/leaderboard";
 import { notificationRouter } from "./routers/notification";
 import { productRouter } from "./routers/product";
 import { publicationRouter } from "./routers/publication";
@@ -40,6 +42,8 @@ export const appRouter = createTRPCRouter({
   school: schoolRouter,
   source: sourceRouter,
   trending: trendingRouter,
+  leaderboard: leaderboardRouter,
+  collection: collectionRouter,
 });
 
 export type AppRouter = typeof appRouter;

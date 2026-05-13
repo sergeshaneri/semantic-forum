@@ -8,6 +8,8 @@ import { ProfileEditActions } from "@/components/socionics/profile-actions";
 import { ProfileProducts } from "@/components/socionics/profile-products";
 import { ProfilePublications } from "@/components/socionics/profile-publications";
 import { auth } from "@/lib/auth/auth";
+import { badgeColor, badgeLabel, computeBadges } from "@/lib/badges";
+import { cn } from "@/lib/utils";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { api } from "@/lib/trpc/server";
@@ -76,6 +78,15 @@ export default async function UserProfilePage({
   ]);
 
   const initial = (user.username[0] ?? "u").toUpperCase();
+  const badges = computeBadges({
+    interpretations: counters.interpretations,
+    comments: counters.comments,
+    entities: counters.entities,
+    theories: counters.theories,
+    karma,
+    followers: counters.followers,
+    mentorAvailable: user.mentorAvailable,
+  });
   const joined = new Date(user.createdAt).toLocaleDateString(
     lang === "ru" ? "ru-RU" : "en-US",
     { day: "numeric", month: "long", year: "numeric" },
@@ -230,6 +241,22 @@ export default async function UserProfilePage({
           )}
         </div>
       </header>
+
+      {badges.length > 0 && (
+        <section className="flex flex-wrap gap-1.5">
+          {badges.map((b) => (
+            <span
+              key={b}
+              className={cn(
+                "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                badgeColor(b),
+              )}
+            >
+              {badgeLabel(b, dict)}
+            </span>
+          ))}
+        </section>
+      )}
 
       <section className="grid grid-cols-2 md:grid-cols-7 gap-3">
         <StatCell

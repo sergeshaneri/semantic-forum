@@ -4,6 +4,7 @@ import { NotificationBell } from "@/components/socionics/notification-bell";
 import { SearchBar } from "@/components/socionics/search-bar";
 import { UserMenu } from "@/components/auth/user-menu";
 import { auth } from "@/lib/auth/auth";
+import { SessionProvider } from "@/lib/auth/session-context";
 import { isLocale, locales } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -24,8 +25,17 @@ export default async function LocaleLayout({
   const dict = getDictionary(lang);
   const session = await auth();
   const otherLang = lang === "ru" ? "en" : "ru";
+  const sessionUser =
+    session?.user && (session.user as { id?: string }).id
+      ? {
+          id: (session.user as { id: string }).id,
+          username:
+            (session.user as { username?: string }).username ?? "",
+        }
+      : null;
 
   return (
+    <SessionProvider user={sessionUser}>
     <div className="flex flex-col min-h-screen">
       <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur z-30">
         <div className="mx-auto max-w-6xl px-6 py-3 flex items-center gap-4">
@@ -114,10 +124,27 @@ export default async function LocaleLayout({
       </header>
       <main className="flex-1">{children}</main>
       <footer className="border-t border-border">
-        <div className="mx-auto max-w-6xl px-6 py-6 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {dict.appName}
+        <div className="mx-auto max-w-6xl px-6 py-6 text-xs text-muted-foreground flex items-center justify-between flex-wrap gap-3">
+          <span>© {new Date().getFullYear()} {dict.appName}</span>
+          <nav className="flex items-center gap-4">
+            <Link
+              href={`/${lang}/leaderboard`}
+              className="hover:text-foreground transition-colors"
+            >
+              {dict.leaderboard.title}
+            </Link>
+            {sessionUser && (
+              <Link
+                href={`/${lang}/collections`}
+                className="hover:text-foreground transition-colors"
+              >
+                {dict.collections.title}
+              </Link>
+            )}
+          </nav>
         </div>
       </footer>
     </div>
+    </SessionProvider>
   );
 }

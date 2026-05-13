@@ -8,6 +8,7 @@ import {
   tags,
   users,
 } from "@/server/db/schema";
+import { expandCitations } from "@/lib/citations";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -174,13 +175,18 @@ export const publicationRouter = createTRPCRouter({
             : Promise.resolve([]),
         ]);
 
+      const expandedBody = await expandCitations(
+        publication.body,
+        input.language,
+      );
+
       return {
         publication: {
           id: publication.id,
           kind: publication.kind,
           title: publication.title,
           slug: publication.slug,
-          body: publication.body,
+          body: expandedBody,
           externalUrl: publication.externalUrl,
           createdAt: publication.createdAt,
           updatedAt: publication.updatedAt,
