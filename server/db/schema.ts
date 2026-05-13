@@ -144,6 +144,8 @@ export const users = pgTable("users", {
   mentorAvailable: boolean("mentor_available").default(false).notNull(),
   mentorSeeking: boolean("mentor_seeking").default(false).notNull(),
   onboardingDismissedAt: timestamp("onboarding_dismissed_at"),
+  checklistDismissedAt: timestamp("checklist_dismissed_at"),
+  welcomeEmailSentAt: timestamp("welcome_email_sent_at"),
   passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

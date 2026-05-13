@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HintTooltip } from "@/components/ui/hint-tooltip";
 import { Separator } from "@/components/ui/separator";
 import { FollowButton } from "@/components/socionics/follow-button";
 import { StartDmButton } from "@/components/socionics/start-dm-button";
@@ -273,6 +274,7 @@ export default async function UserProfilePage({
           value={karma >= 0 ? `+${karma}` : `${karma}`}
           label={dict.profile.karma}
           highlight
+          hint={dict.hints.karma}
         />
         <StatCell value={counters.interpretations} label={dict.profile.interpretations} />
         <StatCell value={counters.comments} label={dict.profile.comments} />
@@ -483,10 +485,12 @@ function StatCell({
   value,
   label,
   highlight,
+  hint,
 }: {
   value: number | string;
   label: string;
   highlight?: boolean;
+  hint?: string;
 }) {
   return (
     <Card className={highlight ? "border-foreground/30" : ""}>
@@ -494,8 +498,9 @@ function StatCell({
         <div className="font-heading text-2xl font-semibold tabular-nums">
           {value}
         </div>
-        <div className="text-xs text-muted-foreground uppercase tracking-wider">
+        <div className="text-xs text-muted-foreground uppercase tracking-wider inline-flex items-center gap-1.5">
           {label}
+          {hint && <HintTooltip text={hint} />}
         </div>
       </CardContent>
     </Card>

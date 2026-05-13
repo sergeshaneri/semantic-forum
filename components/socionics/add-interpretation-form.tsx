@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { HintTooltip } from "@/components/ui/hint-tooltip";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc/react";
@@ -76,7 +77,10 @@ export function AddInterpretationForm({ entityId, lang, dict }: Props) {
       <CardContent className="pt-5">
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="theory">{dict.addInterpretation.theory}</Label>
+            <Label htmlFor="theory" className="inline-flex items-center gap-1.5">
+              {dict.addInterpretation.theory}
+              <HintTooltip text={dict.hints.theoryRequired} />
+            </Label>
             <select
               id="theory"
               value={theoryId}
@@ -119,7 +123,11 @@ export function AddInterpretationForm({ entityId, lang, dict }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="body">{dict.addInterpretation.body}</Label>
+            <Label htmlFor="body" className="inline-flex items-center gap-1.5">
+              {dict.addInterpretation.body}
+              <HintTooltip text={dict.hints.interpretationBody} />
+              <HintTooltip text={dict.hints.citations} />
+            </Label>
             <Textarea
               id="body"
               value={body}

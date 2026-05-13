@@ -37,6 +37,7 @@ export function RegisterForm({ lang, dict }: Props) {
         username,
         password,
         name: name.trim() ? name.trim() : undefined,
+        language: lang,
       });
       const result = await signIn("credentials", {
         email,

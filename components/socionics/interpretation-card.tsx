@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { HintTooltip } from "@/components/ui/hint-tooltip";
 import { AddToCollectionMenu } from "@/components/socionics/add-to-collection-menu";
 import { BookmarkButton } from "@/components/socionics/bookmark-button";
 import { CoauthorsManager } from "@/components/socionics/coauthors-manager";
@@ -615,7 +616,7 @@ function StanceSelect({
   dict: Dictionary;
 }) {
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex gap-2 items-center flex-wrap">
       {(["pro", "contra", "neutral"] as const).map((s) => (
         <button
           type="button"
@@ -634,6 +635,7 @@ function StanceSelect({
               : dict.interpretation.stanceNeutral}
         </button>
       ))}
+      <HintTooltip text={dict.hints.stance} />
     </div>
   );
 }

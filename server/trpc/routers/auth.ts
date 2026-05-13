@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { users } from "@/server/db/schema";
+import { isEmailConfigured, sendWelcomeEmail } from "@/lib/email";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 const registerSchema = z.object({
@@ -14,6 +15,7 @@ const registerSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, "Только латиница, цифры и _"),
   password: z.string().min(8, "Минимум 8 символов").max(128),
   name: z.string().min(1).max(128).optional(),
+  language: z.enum(["ru", "en"]).default("ru"),
 });
 
 export const authRouter = createTRPCRouter({
@@ -50,12 +52,35 @@ export const authRouter = createTRPCRouter({
       }
 
       const passwordHash = await bcrypt.hash(input.password, 10);
-      await ctx.db.insert(users).values({
-        email: input.email.toLowerCase(),
-        username: input.username,
-        name: input.name ?? input.username,
-        passwordHash,
-      });
+      const [inserted] = await ctx.db
+        .insert(users)
+        .values({
+          email: input.email.toLowerCase(),
+          username: input.username,
+          name: input.name ?? input.username,
+          passwordHash,
+        })
+        .returning({ id: users.id });
+
+      // Best-effort welcome email — never block registration on delivery.
+      if (isEmailConfigured()) {
+        void sendWelcomeEmail({
+          to: input.email.toLowerCase(),
+          username: input.username,
+          name: input.name,
+          lang: input.language,
+        }).then(async (sent) => {
+          if (sent && inserted?.id) {
+            await ctx.db
+              .update(users)
+              .set({ welcomeEmailSentAt: new Date() })
+              .where(eq(users.id, inserted.id))
+              .catch(() => {
+                /* swallow */
+              });
+          }
+        });
+      }
 
       return { ok: true as const };
     }),

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { NotificationBell } from "@/components/socionics/notification-bell";
 import { OnboardingLauncher } from "@/components/socionics/onboarding-launcher";
 import { OnboardingTour } from "@/components/socionics/onboarding-tour";
+import { ProgressChecklist } from "@/components/socionics/progress-checklist";
 import { SearchBar } from "@/components/socionics/search-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/auth/user-menu";
@@ -170,11 +171,18 @@ export default async function LocaleLayout({
       </header>
       <main className="flex-1">{children}</main>
       {sessionUser?.username && (
-        <OnboardingTour
-          lang={lang}
-          dict={dict}
-          username={sessionUser.username}
-        />
+        <>
+          <OnboardingTour
+            lang={lang}
+            dict={dict}
+            username={sessionUser.username}
+          />
+          <ProgressChecklist
+            lang={lang}
+            dict={dict}
+            username={sessionUser.username}
+          />
+        </>
       )}
       <footer className="border-t border-border">
         <div className="mx-auto max-w-6xl px-6 py-6 text-xs text-muted-foreground flex items-center justify-between flex-wrap gap-3">

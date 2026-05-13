@@ -453,6 +453,90 @@ export const userRouter = createTRPCRouter({
     return { ok: true as const };
   }),
 
+  checklistProgress: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.userId;
+    const [profile] = await ctx.db
+      .select({
+        bio: users.bio,
+        image: users.image,
+        roles: users.roles,
+        checklistDismissedAt: users.checklistDismissedAt,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!profile) {
+      return {
+        dismissed: false,
+        steps: {
+          profileFilled: false,
+          interpretationPublished: false,
+          commented: false,
+          voted: false,
+          followed: false,
+          authored: false,
+        },
+      };
+    }
+
+    const result = await ctx.db.execute<{
+      has_interpretation: boolean;
+      has_comment: boolean;
+      has_vote: boolean;
+      has_follow: boolean;
+      has_authored: boolean;
+    }>(sql`
+      SELECT
+        EXISTS (
+          SELECT 1 FROM interpretations WHERE author_id = ${userId}
+        ) AS has_interpretation,
+        EXISTS (
+          SELECT 1 FROM comments WHERE author_id = ${userId}
+        ) AS has_comment,
+        EXISTS (
+          SELECT 1 FROM votes WHERE user_id = ${userId}
+        ) AS has_vote,
+        EXISTS (
+          SELECT 1 FROM follows WHERE follower_id = ${userId}
+        ) AS has_follow,
+        (
+          EXISTS (SELECT 1 FROM publications WHERE author_id = ${userId}) OR
+          EXISTS (SELECT 1 FROM questions WHERE author_id = ${userId}) OR
+          EXISTS (SELECT 1 FROM polls WHERE created_by = ${userId}) OR
+          EXISTS (SELECT 1 FROM groups WHERE owner_id = ${userId}) OR
+          EXISTS (SELECT 1 FROM theories WHERE author_id = ${userId})
+        ) AS has_authored
+    `);
+    const row = result[0];
+
+    const bioFilled = Boolean(profile.bio && profile.bio.trim().length > 0);
+    const rolesFilled =
+      Array.isArray(profile.roles) && profile.roles.length > 0;
+    const imageFilled = Boolean(profile.image);
+    const profileFilled = bioFilled || (rolesFilled && imageFilled);
+
+    return {
+      dismissed: Boolean(profile.checklistDismissedAt),
+      steps: {
+        profileFilled,
+        interpretationPublished: Boolean(row?.has_interpretation),
+        commented: Boolean(row?.has_comment),
+        voted: Boolean(row?.has_vote),
+        followed: Boolean(row?.has_follow),
+        authored: Boolean(row?.has_authored),
+      },
+    };
+  }),
+
+  dismissChecklist: protectedProcedure.mutation(async ({ ctx }) => {
+    await ctx.db
+      .update(users)
+      .set({ checklistDismissedAt: new Date() })
+      .where(eq(users.id, ctx.userId));
+    return { ok: true as const };
+  }),
+
   mentorList: publicProcedure
     .input(
       z.object({

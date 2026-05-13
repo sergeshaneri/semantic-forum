@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { HintTooltip } from "@/components/ui/hint-tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -115,7 +116,10 @@ export function AddEntityForm({ lang, dict }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="slug">{dict.addEntity.slug}</Label>
+            <Label htmlFor="slug" className="inline-flex items-center gap-1.5">
+              {dict.addEntity.slug}
+              <HintTooltip text={dict.hints.slug} />
+            </Label>
             <Input
               id="slug"
               value={slug}

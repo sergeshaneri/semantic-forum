@@ -590,6 +590,29 @@ export type Dictionary = {
     finalBody: string;
     finalCta: string;
   };
+  checklist: {
+    title: string;
+    subtitle: string;
+    hide: string;
+    done: string;
+    progressFmt: string;
+    steps: {
+      profileFilled: { label: string; cta: string };
+      interpretationPublished: { label: string; cta: string };
+      commented: { label: string; cta: string };
+      voted: { label: string; cta: string };
+      followed: { label: string; cta: string };
+      authored: { label: string; cta: string };
+    };
+  };
+  hints: {
+    stance: string;
+    karma: string;
+    slug: string;
+    citations: string;
+    theoryRequired: string;
+    interpretationBody: string;
+  };
   apiKeys: {
     title: string;
     subtitle: string;
@@ -1281,6 +1304,47 @@ const ru: Dictionary = {
     finalBody:
       "Тур можно открыть заново из меню в шапке. Начни с заполнения профиля — это поможет сообществу понять твой контекст.",
     finalCta: "К профилю",
+  },
+  checklist: {
+    title: "Освойся на платформе",
+    subtitle: "Несколько простых шагов, чтобы влиться:",
+    hide: "Скрыть",
+    done: "Готово! Спасибо, что ты с нами.",
+    progressFmt: "{done} из {total}",
+    steps: {
+      profileFilled: {
+        label: "Заполни профиль — био или роли + аватар",
+        cta: "К профилю",
+      },
+      interpretationPublished: {
+        label: "Опубликуй первую интерпретацию",
+        cta: "К сущностям",
+      },
+      commented: {
+        label: "Прокомментируй чью-то интерпретацию",
+        cta: "Открыть сущности",
+      },
+      voted: {
+        label: "Проголосуй за интерпретацию или комментарий",
+        cta: "Открыть тренды",
+      },
+      followed: {
+        label: "Подпишись хотя бы на одного автора",
+        cta: "Лидерборд",
+      },
+      authored: {
+        label: "Создай свой контент: статью, вопрос, опрос или группу",
+        cta: "Публикации",
+      },
+    },
+  },
+  hints: {
+    stance: "Поддержка усиливает аргумент, Опровержение оспаривает, Уточнение добавляет нюанс без оценки.",
+    karma: "Сумма голосов «за» − «против» по всем твоим интерпретациям и комментариям. Растёт когда сообщество ценит твою аргументацию.",
+    slug: "Часть URL: латиница, цифры, дефисы. Автоматически генерируется из заголовка, можно поправить вручную.",
+    citations: "В тексте можно ссылаться: [[Эмпатия]] на сущность, [[#intuition-of-feelings]] на объект теории, [[@username]] на пользователя. Алиасы: [[Эмпатия|любовь]].",
+    theoryRequired: "Каждая интерпретация привязана к конкретной теории и её объекту — так одно слово может иметь разные толкования в разных системах.",
+    interpretationBody: "Минимум 20 символов. Поддерживается markdown и цитирование двойными скобками. Опирайся на семантику выбранной теории.",
   },
   apiKeys: {
     title: "API-ключи",
@@ -2020,6 +2084,47 @@ const en: Dictionary = {
     finalBody:
       "You can replay the tour from the header menu. Start with filling out your profile — context helps the community understand your takes.",
     finalCta: "To profile",
+  },
+  checklist: {
+    title: "Get oriented",
+    subtitle: "A few simple steps to ramp up:",
+    hide: "Hide",
+    done: "All done! Thanks for being here.",
+    progressFmt: "{done} of {total}",
+    steps: {
+      profileFilled: {
+        label: "Fill out your profile — bio or roles + avatar",
+        cta: "To profile",
+      },
+      interpretationPublished: {
+        label: "Publish your first interpretation",
+        cta: "Browse entities",
+      },
+      commented: {
+        label: "Comment on someone's interpretation",
+        cta: "Open entities",
+      },
+      voted: {
+        label: "Vote on an interpretation or comment",
+        cta: "See trending",
+      },
+      followed: {
+        label: "Follow at least one author",
+        cta: "Leaderboard",
+      },
+      authored: {
+        label: "Create your own content: article, question, poll, or group",
+        cta: "Publications",
+      },
+    },
+  },
+  hints: {
+    stance: "Support reinforces, Refute challenges, Clarify adds nuance without judgment.",
+    karma: "Sum of upvotes minus downvotes across all your interpretations and comments. Grows when the community values your reasoning.",
+    slug: "Part of the URL: letters, digits, hyphens. Auto-generated from the title, editable.",
+    citations: "In text you can link: [[Empathy]] to an entity, [[#intuition-of-feelings]] to a theory object, [[@username]] to a user. Aliases: [[Empathy|love]].",
+    theoryRequired: "Every interpretation is tied to a specific theory and object — so one word can have different readings across systems.",
+    interpretationBody: "Minimum 20 chars. Markdown and double-bracket citations supported. Ground your argument in the chosen theory's semantics.",
   },
   apiKeys: {
     title: "API keys",
