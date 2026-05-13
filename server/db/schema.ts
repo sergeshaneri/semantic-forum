@@ -143,6 +143,7 @@ export const users = pgTable("users", {
   roles: jsonb("roles").$type<string[]>().default([]).notNull(),
   mentorAvailable: boolean("mentor_available").default(false).notNull(),
   mentorSeeking: boolean("mentor_seeking").default(false).notNull(),
+  onboardingDismissedAt: timestamp("onboarding_dismissed_at"),
   passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

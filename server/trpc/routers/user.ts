@@ -421,6 +421,38 @@ export const userRouter = createTRPCRouter({
       return { ok: true as const };
     }),
 
+  onboardingStatus: protectedProcedure.query(async ({ ctx }) => {
+    const [row] = await ctx.db
+      .select({
+        dismissedAt: users.onboardingDismissedAt,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.id, ctx.userId))
+      .limit(1);
+    return {
+      dismissed: Boolean(row?.dismissedAt),
+      dismissedAt: row?.dismissedAt ?? null,
+      accountCreatedAt: row?.createdAt ?? null,
+    };
+  }),
+
+  dismissOnboarding: protectedProcedure.mutation(async ({ ctx }) => {
+    await ctx.db
+      .update(users)
+      .set({ onboardingDismissedAt: new Date() })
+      .where(eq(users.id, ctx.userId));
+    return { ok: true as const };
+  }),
+
+  resetOnboarding: protectedProcedure.mutation(async ({ ctx }) => {
+    await ctx.db
+      .update(users)
+      .set({ onboardingDismissedAt: null })
+      .where(eq(users.id, ctx.userId));
+    return { ok: true as const };
+  }),
+
   mentorList: publicProcedure
     .input(
       z.object({

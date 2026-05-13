@@ -561,6 +561,35 @@ export type Dictionary = {
     quoteLabel: string;
     findInText: string;
   };
+  onboarding: {
+    skip: string;
+    back: string;
+    next: string;
+    finish: string;
+    counter: string;
+    explore: string;
+    replay: string;
+    welcomeTitle: string;
+    welcomeBody: string;
+    contentTitle: string;
+    contentBody: string;
+    contentLinkLabel: string;
+    interpretationsTitle: string;
+    interpretationsBody: string;
+    socialTitle: string;
+    socialBody: string;
+    socialLinkLabel: string;
+    authorTitle: string;
+    authorBody: string;
+    qaTitle: string;
+    qaBody: string;
+    advancedTitle: string;
+    advancedBody: string;
+    advancedLinkLabel: string;
+    finalTitle: string;
+    finalBody: string;
+    finalCta: string;
+  };
   apiKeys: {
     title: string;
     subtitle: string;
@@ -1215,6 +1244,43 @@ const ru: Dictionary = {
     threadEmpty: "В этом диалоге ещё нет сообщений. Напиши первым.",
     unreadShort: "новых",
     typingPlaceholder: "Сообщение...",
+  },
+  onboarding: {
+    skip: "Пропустить",
+    back: "← Назад",
+    next: "Далее →",
+    finish: "Готово",
+    counter: "Шаг {current} из {total}",
+    explore: "Открыть",
+    replay: "Открыть тур заново",
+    welcomeTitle: "Добро пожаловать в Соционическую Семантику",
+    welcomeBody:
+      "Это платформа, где сообщество обсуждает соционику через аргументы, а не через споры о ТИМах. Сейчас покажу, что здесь есть — займёт минуту.",
+    contentTitle: "Сущности и Теории — основа контента",
+    contentBody:
+      "Сущность — это слово, личность или материал (текст, видео). Теория — это система объектов (аспектов, ТИМов, отношений). Любая интерпретация всегда привязана к конкретной теории, и теорию можно форкнуть, как репозиторий на GitHub.",
+    contentLinkLabel: "Посмотреть каталог сущностей",
+    interpretationsTitle: "Интерпретации, голосование, цитаты",
+    interpretationsBody:
+      "Интерпретация — это твой аргумент: «эта сущность относится к такому-то объекту такой-то теории, потому что…». Сообщество голосует за или против. В тексте можно использовать [[Эмпатия]], [[#intuition-of-feelings]], [[@username]] — они автоматически превращаются в ссылки.",
+    socialTitle: "Социальный слой",
+    socialBody:
+      "Комментарии с позицией (Поддержка / Опровержение / Уточнение), голосование за комментарии и треды на 3 уровня. Подписки, личные сообщения, группы по интересам (Reddit-стиль), коллекции, лайв-опросы — всё на месте.",
+    socialLinkLabel: "Заглянуть в группы",
+    authorTitle: "Авторские инструменты",
+    authorBody:
+      "Можешь публиковать статьи и видео с тегами и перекрёстными ссылками, продавать курсы / консультации с отзывами, проводить опросы, создавать группы. У каждой публикации — версионирование и соавторы.",
+    qaTitle: "Q&A, события, школы",
+    qaBody:
+      "Задавай вопросы и принимай «решающие» ответы. Создавай события с RSVP. Указывай свою школу и кто на тебя повлиял — твой профиль становится частью карты соционической мысли.",
+    advancedTitle: "Продвинутое",
+    advancedBody:
+      "Аннотации к фрагментам материалов в стиле Genius (выдели текст → прикрепи заметку). Embed-виджеты для встраивания карточек на внешние сайты. API-ключи для CLI и AI-агентов — можно автоматически наполнять платформу контентом.",
+    advancedLinkLabel: "API-документация",
+    finalTitle: "Поехали",
+    finalBody:
+      "Тур можно открыть заново из меню в шапке. Начни с заполнения профиля — это поможет сообществу понять твой контекст.",
+    finalCta: "К профилю",
   },
   apiKeys: {
     title: "API-ключи",
@@ -1917,6 +1983,43 @@ const en: Dictionary = {
     threadEmpty: "No messages here yet. Be the first.",
     unreadShort: "new",
     typingPlaceholder: "Message...",
+  },
+  onboarding: {
+    skip: "Skip",
+    back: "← Back",
+    next: "Next →",
+    finish: "Done",
+    counter: "Step {current} of {total}",
+    explore: "Open",
+    replay: "Replay the tour",
+    welcomeTitle: "Welcome to Socionics Semantics",
+    welcomeBody:
+      "A platform where the community discusses socionics through arguments instead of fighting over TIMs. Here's what's available — takes a minute.",
+    contentTitle: "Entities and Theories — the content base",
+    contentBody:
+      "An Entity is a word, person, or material (text/video). A Theory is a system of objects (aspects, TIMs, relations). Every interpretation is tied to a specific theory, and theories can be forked like GitHub repos.",
+    contentLinkLabel: "Browse entities",
+    interpretationsTitle: "Interpretations, voting, citations",
+    interpretationsBody:
+      "An interpretation is your argument: 'this entity belongs to this object of this theory, because…'. The community votes. In the text you can use [[Empathy]], [[#intuition-of-feelings]], [[@username]] — they auto-link.",
+    socialTitle: "Social layer",
+    socialBody:
+      "Comments with a stance (Support / Refute / Clarify), comment voting, threads up to 3 levels. Follows, DMs, interest groups (Reddit-style), collections, live polls — all in.",
+    socialLinkLabel: "Check out groups",
+    authorTitle: "Author tools",
+    authorBody:
+      "Publish articles and videos with tags and cross-references, sell courses / consultations with reviews, run polls, create groups. Each publication has revisions and co-authors.",
+    qaTitle: "Q&A, events, schools",
+    qaBody:
+      "Ask questions and accept 'solving' answers. Create events with RSVP. Mark your school and who influenced you — your profile becomes part of the socionics knowledge graph.",
+    advancedTitle: "Advanced",
+    advancedBody:
+      "Genius-style annotations on material fragments (select text → attach a note). Embed widgets for third-party sites. API keys for CLIs and AI agents — automate content creation.",
+    advancedLinkLabel: "API docs",
+    finalTitle: "Let's go",
+    finalBody:
+      "You can replay the tour from the header menu. Start with filling out your profile — context helps the community understand your takes.",
+    finalCta: "To profile",
   },
   apiKeys: {
     title: "API keys",
