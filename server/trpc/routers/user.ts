@@ -6,8 +6,11 @@ import {
   entities,
   follows,
   interpretations,
+  notifications,
   theories,
   theoryObjects,
+  userInfluences,
+  userSchools,
   users,
 } from "@/server/db/schema";
 import {
@@ -29,6 +32,8 @@ export const userRouter = createTRPCRouter({
           image: true,
           bio: true,
           roles: true,
+          mentorAvailable: true,
+          mentorSeeking: true,
           createdAt: true,
         },
         with: {
@@ -36,6 +41,41 @@ export const userRouter = createTRPCRouter({
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // load schools and influences
+      const schoolsRows = await ctx.db
+        .select({
+          id: userSchools.schoolId,
+        })
+        .from(userSchools)
+        .where(eq(userSchools.userId, user.id));
+      const schoolsList = schoolsRows.length
+        ? await ctx.db.query.schools.findMany({
+            where: (s, { inArray }) =>
+              inArray(s.id, schoolsRows.map((r) => r.id)),
+            columns: { id: true, slug: true, name: true, language: true },
+          })
+        : [];
+
+      const influencesRows = await ctx.db.query.userInfluences.findMany({
+        where: eq(userInfluences.userId, user.id),
+        with: {
+          influencerUser: {
+            columns: { id: true, username: true, name: true },
+          },
+        },
+      });
+      const influences = influencesRows.map((i) => ({
+        id: i.id,
+        externalName: i.externalName,
+        note: i.note,
+        influencer: i.influencerUser
+          ? {
+              username: i.influencerUser.username ?? "",
+              name: i.influencerUser.name ?? "",
+            }
+          : null,
+      }));
 
       const userId = user.id;
       const viewerId = ctx.session?.user?.id ?? null;
@@ -200,6 +240,8 @@ export const userRouter = createTRPCRouter({
           image: user.image ?? null,
           bio: user.bio ?? "",
           roles: (user.roles ?? []) as string[],
+          mentorAvailable: user.mentorAvailable,
+          mentorSeeking: user.mentorSeeking,
           createdAt: user.createdAt,
         },
         links: user.links.map((l) => ({
@@ -208,6 +250,13 @@ export const userRouter = createTRPCRouter({
           label: l.label,
           url: l.url,
         })),
+        schools: schoolsList.map((s) => ({
+          id: s.id,
+          slug: s.slug,
+          name: s.name,
+          language: s.language,
+        })),
+        influences,
         isSelf: viewerId === userId,
         viewerIsFollowing,
         karma,
@@ -336,6 +385,16 @@ export const userRouter = createTRPCRouter({
         await ctx.db.insert(follows).values({
           followerId: ctx.userId,
           followingId: target.id,
+        });
+        // notify the followed user
+        await ctx.db.insert(notifications).values({
+          recipientId: target.id,
+          actorId: ctx.userId,
+          type: "follow",
+          targetType: "user",
+          targetId: ctx.userId,
+          url: null,
+          message: "подписался на тебя",
         });
       } catch {
         // already following — ignore

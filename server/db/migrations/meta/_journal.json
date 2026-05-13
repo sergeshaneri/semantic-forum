@@ -36,6 +36,13 @@
       "when": 1778590877447,
       "tag": "0004_first_queen_noir",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778658310930,
+      "tag": "0005_lean_moon_knight",
+      "breakpoints": true
     }
   ]
 }

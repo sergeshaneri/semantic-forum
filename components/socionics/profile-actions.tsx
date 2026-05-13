@@ -28,6 +28,14 @@ type Link = {
   url: string;
 };
 
+type School = { id: string; slug: string; name: string };
+type Influence = {
+  id: string;
+  externalName: string | null;
+  note: string | null;
+  influencer: { username: string; name: string } | null;
+};
+
 type Props = {
   user: {
     username: string;
@@ -35,8 +43,13 @@ type Props = {
     bio: string;
     image: string | null;
     roles: string[];
+    mentorAvailable: boolean;
+    mentorSeeking: boolean;
   };
   links: Link[];
+  schools: School[];
+  influences: Influence[];
+  lang: "ru" | "en";
   dict: Dictionary;
 };
 
@@ -52,53 +65,313 @@ const PRESET_ROLES: { value: string; ruLabel: string; enLabel: string }[] = [
   { value: "Философ", ruLabel: "Философ", enLabel: "Philosopher" },
 ];
 
-export function ProfileEditActions({ user, links, dict }: Props) {
+export function ProfileEditActions({
+  user,
+  links,
+  schools,
+  influences,
+  lang,
+  dict,
+}: Props) {
   const router = useRouter();
-  const [editing, setEditing] = useState(false);
-  const [managingLinks, setManagingLinks] = useState(false);
+  const [mode, setMode] = useState<"none" | "profile" | "links" | "affiliations">("none");
 
   return (
     <div className="flex flex-col items-end gap-2 w-full max-w-md">
-      {editing && (
+      {mode === "profile" && (
         <EditProfile
           user={user}
           dict={dict}
-          onCancel={() => setEditing(false)}
+          onCancel={() => setMode("none")}
           onSaved={() => {
-            setEditing(false);
+            setMode("none");
             router.refresh();
           }}
         />
       )}
-      {managingLinks && (
+      {mode === "links" && (
         <ManageLinks
           links={links}
           dict={dict}
           onClose={() => {
-            setManagingLinks(false);
+            setMode("none");
             router.refresh();
           }}
         />
       )}
-      {!editing && !managingLinks && (
+      {mode === "affiliations" && (
+        <ManageAffiliations
+          user={user}
+          schools={schools}
+          influences={influences}
+          lang={lang}
+          dict={dict}
+          onClose={() => {
+            setMode("none");
+            router.refresh();
+          }}
+        />
+      )}
+      {mode === "none" && (
         <div className="flex flex-col items-end gap-1">
           <button
             type="button"
-            onClick={() => setEditing(true)}
+            onClick={() => setMode("profile")}
             className="text-xs rounded-md border border-border px-2.5 py-1 hover:bg-muted transition-colors"
           >
             {dict.profile.editButton}
           </button>
           <button
             type="button"
-            onClick={() => setManagingLinks(true)}
+            onClick={() => setMode("links")}
             className="text-xs rounded-md border border-border px-2.5 py-1 hover:bg-muted transition-colors"
           >
             {dict.profile.manageLinks}
           </button>
+          <button
+            type="button"
+            onClick={() => setMode("affiliations")}
+            className="text-xs rounded-md border border-border px-2.5 py-1 hover:bg-muted transition-colors"
+          >
+            {dict.profile.manageAffiliations}
+          </button>
         </div>
       )}
     </div>
+  );
+}
+
+function ManageAffiliations({
+  user,
+  schools,
+  influences,
+  lang,
+  dict,
+  onClose,
+}: {
+  user: Props["user"];
+  schools: School[];
+  influences: Influence[];
+  lang: "ru" | "en";
+  dict: Dictionary;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const allSchools = trpc.school.list.useQuery({ language: lang });
+  const setSchools = trpc.affiliation.setSchools.useMutation();
+  const setFlags = trpc.affiliation.setMentorFlags.useMutation();
+  const addInf = trpc.affiliation.addInfluence.useMutation();
+  const removeInf = trpc.affiliation.removeInfluence.useMutation();
+
+  const [schoolIds, setSchoolIds] = useState<string[]>(
+    schools.map((s) => s.id),
+  );
+  const [mentorAvail, setMentorAvail] = useState(user.mentorAvailable);
+  const [mentorSeek, setMentorSeek] = useState(user.mentorSeeking);
+  const [infUsername, setInfUsername] = useState("");
+  const [infExternal, setInfExternal] = useState("");
+  const [infNote, setInfNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  function toggleSchool(id: string) {
+    setSchoolIds((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+    );
+  }
+
+  async function saveSchoolsAndFlags(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await setSchools.mutateAsync({ schoolIds });
+      await setFlags.mutateAsync({
+        mentorAvailable: mentorAvail,
+        mentorSeeking: mentorSeek,
+      });
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+    }
+  }
+
+  async function onAddInfluence(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await addInf.mutateAsync({
+        influencerUsername: infUsername || undefined,
+        externalName: infExternal || undefined,
+        note: infNote || undefined,
+      });
+      setInfUsername("");
+      setInfExternal("");
+      setInfNote("");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+    }
+  }
+
+  async function onRemoveInfluence(id: string) {
+    if (!confirm(dict.actions.confirmDelete)) return;
+    await removeInf.mutateAsync({ id });
+    router.refresh();
+  }
+
+  return (
+    <Card className="w-full">
+      <CardContent className="pt-5 space-y-6">
+        <form onSubmit={saveSchoolsAndFlags} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>{dict.profile.schoolsLabel}</Label>
+            <p className="text-xs text-muted-foreground">
+              {dict.profile.schoolsHint}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {(allSchools.data ?? []).map((s) => {
+                const selected = schoolIds.includes(s.id);
+                return (
+                  <button
+                    type="button"
+                    key={s.id}
+                    onClick={() => toggleSchool(s.id)}
+                    className={`text-xs rounded-full border px-2.5 py-1 transition-colors ${
+                      selected
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border hover:bg-muted"
+                    }`}
+                  >
+                    {s.name}
+                  </button>
+                );
+              })}
+              {(allSchools.data ?? []).length === 0 && (
+                <span className="text-xs text-muted-foreground italic">
+                  {dict.schools.empty}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{dict.mentor.flagsTitle}</Label>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={mentorAvail}
+                  onChange={(e) => setMentorAvail(e.target.checked)}
+                />
+                {dict.mentor.available}
+              </label>
+              <label className="text-sm flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={mentorSeek}
+                  onChange={(e) => setMentorSeek(e.target.checked)}
+                />
+                {dict.mentor.seeking}
+              </label>
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
+          )}
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              size="sm"
+              disabled={setSchools.isPending || setFlags.isPending}
+            >
+              {dict.actions.save}
+            </Button>
+          </div>
+        </form>
+
+        <div className="border-t border-border pt-4 space-y-3">
+          <h3 className="font-medium text-sm">{dict.influences.title}</h3>
+          {influences.length > 0 && (
+            <ul className="space-y-1.5">
+              {influences.map((i) => (
+                <li
+                  key={i.id}
+                  className="flex items-center gap-2 text-sm rounded-md border border-border px-2.5 py-1.5"
+                >
+                  <span className="font-medium">
+                    {i.influencer
+                      ? `@${i.influencer.username}`
+                      : i.externalName}
+                  </span>
+                  {i.note && (
+                    <span className="text-xs text-muted-foreground italic">
+                      — {i.note}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onRemoveInfluence(i.id)}
+                    className="ml-auto text-xs text-muted-foreground hover:text-rose-600 transition-colors"
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <form onSubmit={onAddInfluence} className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder={dict.influences.influencerUsername}
+                value={infUsername}
+                onChange={(e) => {
+                  setInfUsername(e.target.value.replace(/^@/, ""));
+                  if (e.target.value) setInfExternal("");
+                }}
+                maxLength={64}
+              />
+              <Input
+                placeholder={dict.influences.influencerExternal}
+                value={infExternal}
+                onChange={(e) => {
+                  setInfExternal(e.target.value);
+                  if (e.target.value) setInfUsername("");
+                }}
+                maxLength={200}
+              />
+            </div>
+            <Input
+              placeholder={dict.influences.note}
+              value={infNote}
+              onChange={(e) => setInfNote(e.target.value)}
+              maxLength={300}
+            />
+            <p className="text-xs text-muted-foreground">
+              {dict.influences.addExternalHelp}
+            </p>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                size="sm"
+                variant="outline"
+                disabled={
+                  addInf.isPending || (!infUsername && !infExternal)
+                }
+              >
+                {dict.influences.add}
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        <div className="flex justify-end pt-2 border-t border-border">
+          <Button type="button" size="sm" variant="outline" onClick={onClose}>
+            {dict.profile.linksClose}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -1,12 +1,15 @@
 import { TRPCError } from "@trpc/server";
-import { count, eq } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
   entities,
   interpretations,
+  notifications,
   theories,
   theoryObjects,
+  users,
 } from "@/server/db/schema";
+import { extractMentions } from "@/lib/mentions";
 import { createTRPCRouter, protectedProcedure } from "../init";
 
 const createSchema = z.object({
@@ -77,6 +80,35 @@ export const interpretationRouter = createTRPCRouter({
           language: entity.language,
         })
         .returning({ id: interpretations.id });
+
+      // @mentions notifications
+      const mentioned = extractMentions(input.body);
+      if (mentioned.length > 0) {
+        const slugRow = await ctx.db
+          .select({ slug: entities.slug, lang: entities.language })
+          .from(entities)
+          .where(eq(entities.id, input.entityId))
+          .limit(1);
+        const url = slugRow[0]
+          ? `/${slugRow[0].lang}/entities/${slugRow[0].slug}`
+          : null;
+        const targets = await ctx.db
+          .select({ id: users.id })
+          .from(users)
+          .where(inArray(users.username, mentioned));
+        for (const t of targets) {
+          if (t.id === ctx.userId) continue;
+          await ctx.db.insert(notifications).values({
+            recipientId: t.id,
+            actorId: ctx.userId,
+            type: "mention",
+            targetType: "interpretation",
+            targetId: inserted!.id,
+            url,
+            message: "упомянул тебя в интерпретации",
+          });
+        }
+      }
 
       return { id: inserted!.id };
     }),

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { EntityCard } from "@/components/socionics/entity-card";
 import { FollowFeed } from "@/components/socionics/follow-feed";
 import { TheoryCard } from "@/components/socionics/theory-card";
+import { Trending } from "@/components/socionics/trending";
 import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -62,6 +63,8 @@ export default async function HomePage({
       </section>
 
       {isAuthed && <FollowFeed lang={lang} dict={dict} />}
+
+      <Trending lang={lang} dict={dict} />
 
       <section className="space-y-5">
         <div className="flex items-end justify-between">

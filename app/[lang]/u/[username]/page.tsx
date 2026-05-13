@@ -56,6 +56,8 @@ export default async function UserProfilePage({
   const {
     user,
     links,
+    schools,
+    influences,
     isSelf,
     viewerIsFollowing,
     karma,
@@ -101,13 +103,25 @@ export default async function UserProfilePage({
           <p className="text-sm text-muted-foreground">
             @{user.username} · {dict.profile.joined} {joined}
           </p>
-          {user.roles.length > 0 && (
+          {(user.roles.length > 0 ||
+            user.mentorAvailable ||
+            user.mentorSeeking) && (
             <div className="flex flex-wrap gap-1.5 pt-1">
               {user.roles.map((r) => (
                 <Badge key={r} variant="outline" className="text-xs font-normal">
                   {r}
                 </Badge>
               ))}
+              {user.mentorAvailable && (
+                <Badge className="text-xs bg-emerald-600 text-white hover:bg-emerald-600">
+                  {dict.mentor.available}
+                </Badge>
+              )}
+              {user.mentorSeeking && (
+                <Badge className="text-xs bg-sky-600 text-white hover:bg-sky-600">
+                  {dict.mentor.seeking}
+                </Badge>
+              )}
             </div>
           )}
           {user.bio ? (
@@ -137,6 +151,55 @@ export default async function UserProfilePage({
               ))}
             </div>
           )}
+          {schools.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-2 text-xs">
+              <span className="text-muted-foreground">
+                {dict.profile.schoolsLabel}:
+              </span>
+              {schools.map((s) => (
+                <Link
+                  key={s.id}
+                  href={`/${lang}/schools/${s.slug}`}
+                  className="rounded-md border border-border px-2 py-0.5 hover:bg-muted transition-colors"
+                >
+                  {s.name}
+                </Link>
+              ))}
+            </div>
+          )}
+          {influences.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-2 text-xs">
+              <span className="text-muted-foreground">
+                {dict.influences.title}:
+              </span>
+              {influences.map((i) => {
+                const name = i.influencer
+                  ? `@${i.influencer.username}`
+                  : i.externalName;
+                if (i.influencer) {
+                  return (
+                    <Link
+                      key={i.id}
+                      href={`/${lang}/u/${i.influencer.username}`}
+                      className="rounded-md border border-border px-2 py-0.5 hover:bg-muted transition-colors"
+                      title={i.note ?? undefined}
+                    >
+                      {name}
+                    </Link>
+                  );
+                }
+                return (
+                  <span
+                    key={i.id}
+                    className="rounded-md border border-border px-2 py-0.5 text-muted-foreground"
+                    title={i.note ?? undefined}
+                  >
+                    {name}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
         <div>
           {isSelf ? (
@@ -147,8 +210,13 @@ export default async function UserProfilePage({
                 bio: user.bio,
                 image: user.image,
                 roles: user.roles,
+                mentorAvailable: user.mentorAvailable,
+                mentorSeeking: user.mentorSeeking,
               }}
               links={links}
+              schools={schools}
+              influences={influences}
+              lang={lang}
               dict={dict}
             />
           ) : (

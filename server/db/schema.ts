@@ -44,6 +44,27 @@ export const refTargetEnum = pgEnum("ref_target", [
   "theory_object",
 ]);
 
+export const sourceKindEnum = pgEnum("source_kind", [
+  "book",
+  "article",
+  "paper",
+  "video",
+  "podcast",
+  "website",
+  "other",
+]);
+
+export const collectionItemTargetEnum = pgEnum("collection_item_target", [
+  "entity",
+  "interpretation",
+  "theory",
+  "theory_object",
+  "publication",
+  "product",
+  "school",
+  "source",
+]);
+
 export const langEnum = pgEnum("lang", ["ru", "en"]);
 export const entityKindEnum = pgEnum("entity_kind", [
   "word",
@@ -99,6 +120,8 @@ export const users = pgTable("users", {
   image: text("image"),
   bio: text("bio"),
   roles: jsonb("roles").$type<string[]>().default([]).notNull(),
+  mentorAvailable: boolean("mentor_available").default(false).notNull(),
+  mentorSeeking: boolean("mentor_seeking").default(false).notNull(),
   passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -176,6 +199,118 @@ export const products = pgTable("products", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),
 });
+
+export const schools = pgTable(
+  "schools",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: varchar("slug", { length: 200 }).notNull(),
+    name: varchar("name", { length: 300 }).notNull(),
+    description: text("description").notNull(),
+    foundedYear: integer("founded_year"),
+    foundedPlace: varchar("founded_place", { length: 200 }),
+    founderName: varchar("founder_name", { length: 200 }),
+    websiteUrl: varchar("website_url", { length: 500 }),
+    language: langEnum("language").notNull(),
+    isSeed: boolean("is_seed").default(false).notNull(),
+    createdBy: text("created_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("schools_slug_lang_idx").on(t.slug, t.language)],
+);
+
+export const sources = pgTable("sources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  kind: sourceKindEnum("kind").notNull(),
+  title: varchar("title", { length: 500 }).notNull(),
+  authorNames: varchar("author_names", { length: 500 }),
+  year: integer("year"),
+  url: varchar("url", { length: 500 }),
+  isbn: varchar("isbn", { length: 20 }),
+  description: text("description"),
+  language: langEnum("language").notNull(),
+  addedBy: text("added_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const schoolSources = pgTable(
+  "school_sources",
+  {
+    schoolId: uuid("school_id")
+      .notNull()
+      .references(() => schools.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => sources.id, { onDelete: "cascade" }),
+    note: varchar("note", { length: 200 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.schoolId, t.sourceId] })],
+);
+
+export const userSchools = pgTable(
+  "user_schools",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    schoolId: uuid("school_id")
+      .notNull()
+      .references(() => schools.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.schoolId] })],
+);
+
+export const userInfluences = pgTable("user_influences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  influencerUserId: text("influencer_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  externalName: varchar("external_name", { length: 200 }),
+  note: varchar("note", { length: 300 }),
+  position: integer("position").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const collections = pgTable(
+  "collections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 200 }).notNull(),
+    slug: varchar("slug", { length: 200 }).notNull(),
+    description: text("description"),
+    isPublic: boolean("is_public").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("collections_user_slug_idx").on(t.userId, t.slug)],
+);
+
+export const collectionItems = pgTable(
+  "collection_items",
+  {
+    collectionId: uuid("collection_id")
+      .notNull()
+      .references(() => collections.id, { onDelete: "cascade" }),
+    targetType: collectionItemTargetEnum("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    note: varchar("note", { length: 300 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    primaryKey({
+      columns: [t.collectionId, t.targetType, t.targetId],
+    }),
+  ],
+);
 
 export const productReviews = pgTable(
   "product_reviews",
@@ -546,6 +681,70 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 export const bookmarksRelations = relations(bookmarks, ({ one }) => ({
   user: one(users, { fields: [bookmarks.userId], references: [users.id] }),
 }));
+
+export const schoolsRelations = relations(schools, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [schools.createdBy],
+    references: [users.id],
+  }),
+  sources: many(schoolSources),
+  members: many(userSchools),
+}));
+
+export const sourcesRelations = relations(sources, ({ one, many }) => ({
+  addedByUser: one(users, {
+    fields: [sources.addedBy],
+    references: [users.id],
+  }),
+  schoolLinks: many(schoolSources),
+}));
+
+export const schoolSourcesRelations = relations(schoolSources, ({ one }) => ({
+  school: one(schools, {
+    fields: [schoolSources.schoolId],
+    references: [schools.id],
+  }),
+  source: one(sources, {
+    fields: [schoolSources.sourceId],
+    references: [sources.id],
+  }),
+}));
+
+export const userSchoolsRelations = relations(userSchools, ({ one }) => ({
+  user: one(users, { fields: [userSchools.userId], references: [users.id] }),
+  school: one(schools, {
+    fields: [userSchools.schoolId],
+    references: [schools.id],
+  }),
+}));
+
+export const userInfluencesRelations = relations(userInfluences, ({ one }) => ({
+  user: one(users, {
+    fields: [userInfluences.userId],
+    references: [users.id],
+    relationName: "userOwnInfluences",
+  }),
+  influencerUser: one(users, {
+    fields: [userInfluences.influencerUserId],
+    references: [users.id],
+    relationName: "userAsInfluencer",
+  }),
+}));
+
+export const collectionsRelations = relations(collections, ({ one, many }) => ({
+  user: one(users, { fields: [collections.userId], references: [users.id] }),
+  items: many(collectionItems),
+}));
+
+export const collectionItemsRelations = relations(
+  collectionItems,
+  ({ one }) => ({
+    collection: one(collections, {
+      fields: [collectionItems.collectionId],
+      references: [collections.id],
+    }),
+  }),
+);
 
 export const followsRelations = relations(follows, ({ one }) => ({
   follower: one(users, {

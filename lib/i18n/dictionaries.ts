@@ -62,6 +62,69 @@ export type Dictionary = {
       string
     >;
   };
+  schools: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    addButton: string;
+    loginToAdd: string;
+    name: string;
+    namePlaceholder: string;
+    slug: string;
+    description: string;
+    foundedYear: string;
+    foundedPlace: string;
+    foundedPlacePlaceholder: string;
+    founderName: string;
+    founderNamePlaceholder: string;
+    founderHint: string;
+    founderLabel: string;
+    websiteUrl: string;
+    create: string;
+    literatureTitle: string;
+    literatureEmpty: string;
+    membersTitle: string;
+    sourcesShort: string;
+    membersShort: string;
+    addSourceButton: string;
+    addSourceConfirm: string;
+    sourceKind: string;
+    sourceTitle: string;
+    sourceAuthors: string;
+    sourceYear: string;
+    sourceUrl: string;
+    sourceDescription: string;
+    sourceKinds: Record<
+      | "book"
+      | "article"
+      | "paper"
+      | "video"
+      | "podcast"
+      | "website"
+      | "other",
+      string
+    >;
+    join: string;
+    leave: string;
+  };
+  trending: {
+    title: string;
+    subtitle: string;
+  };
+  influences: {
+    title: string;
+    empty: string;
+    add: string;
+    influencerUsername: string;
+    influencerExternal: string;
+    note: string;
+    addExternalHelp: string;
+  };
+  mentor: {
+    available: string;
+    seeking: string;
+    flagsTitle: string;
+  };
   theories: {
     title: string;
     subtitle: string;
@@ -193,10 +256,13 @@ export type Dictionary = {
     rolesHint: string;
     rolesCustomPlaceholder: string;
     manageLinks: string;
+    manageAffiliations: string;
     addLink: string;
     linksClose: string;
     linkLabelPlaceholder: string;
     linksTitle: string;
+    schoolsLabel: string;
+    schoolsHint: string;
   };
   publications: {
     title: string;
@@ -377,6 +443,71 @@ const ru: Dictionary = {
       product: "Продукт",
     },
   },
+  schools: {
+    title: "Школы",
+    subtitle:
+      "Соционические школы и их традиции. Описание подходов, ключевые авторы, список литературы и источники.",
+    empty: "Школ пока нет.",
+    addButton: "Создать школу",
+    loginToAdd: "Войди чтобы создать школу",
+    name: "Название",
+    namePlaceholder: "Школа гуманитарной соционики, Информационная физика...",
+    slug: "Slug (для URL)",
+    description: "Описание подхода и истории",
+    foundedYear: "Год основания",
+    foundedPlace: "Место",
+    foundedPlacePlaceholder: "Киев, Москва...",
+    founderName: "Основатель",
+    founderNamePlaceholder: "А. Аугустинавичюте, В. Гуленко...",
+    founderHint:
+      "Имя основателя как текст. Если основатель — пользователь платформы, он может присоединиться через 'Я отсюда'.",
+    founderLabel: "Основатель",
+    websiteUrl: "Сайт школы",
+    create: "Создать",
+    literatureTitle: "Литература и источники",
+    literatureEmpty: "Источников пока нет.",
+    membersTitle: "Представители",
+    sourcesShort: "источ.",
+    membersShort: "учас.",
+    addSourceButton: "Добавить источник",
+    addSourceConfirm: "Добавить",
+    sourceKind: "Тип",
+    sourceTitle: "Название",
+    sourceAuthors: "Авторы",
+    sourceYear: "Год",
+    sourceUrl: "Ссылка",
+    sourceDescription: "Краткое описание",
+    sourceKinds: {
+      book: "Книга",
+      article: "Статья",
+      paper: "Научная работа",
+      video: "Видео",
+      podcast: "Подкаст",
+      website: "Сайт",
+      other: "Другое",
+    },
+    join: "Я отсюда",
+    leave: "Покинуть",
+  },
+  trending: {
+    title: "В тренде",
+    subtitle: "Топ-интерпретации последних 7 дней.",
+  },
+  influences: {
+    title: "Кто на меня повлиял",
+    empty: "Пока никого не указано.",
+    add: "Добавить влияние",
+    influencerUsername: "Username пользователя платформы",
+    influencerExternal: "Или имя внешнего автора (например, классик)",
+    note: "Комментарий (как именно повлиял)",
+    addExternalHelp:
+      "Если указан внешний автор — он не будет связан с аккаунтом, только текст.",
+  },
+  mentor: {
+    available: "Я могу менторить",
+    seeking: "Ищу ментора",
+    flagsTitle: "Менторство",
+  },
   theories: {
     title: "Теории",
     subtitle:
@@ -517,10 +648,13 @@ const ru: Dictionary = {
       "Выбери одну или несколько. Можно добавить своё. До 8 ролей.",
     rolesCustomPlaceholder: "Своя роль...",
     manageLinks: "Управлять ссылками",
+    manageAffiliations: "Школы и менторство",
     addLink: "Добавить",
     linksClose: "Готово",
     linkLabelPlaceholder: "Подпись (например: Мой канал)",
     linksTitle: "Ссылки",
+    schoolsLabel: "Школы, к которым отношусь",
+    schoolsHint: "Можно выбрать несколько. Школы создаются на /schools.",
   },
   publications: {
     title: "Публикации",
@@ -705,6 +839,70 @@ const en: Dictionary = {
       product: "Product",
     },
   },
+  schools: {
+    title: "Schools",
+    subtitle:
+      "Socionic schools and traditions. Approach, key authors, literature and sources.",
+    empty: "No schools yet.",
+    addButton: "Create school",
+    loginToAdd: "Sign in to create a school",
+    name: "Name",
+    namePlaceholder: "Humanitarian socionics, Information physics...",
+    slug: "Slug",
+    description: "Approach and history",
+    foundedYear: "Founded year",
+    foundedPlace: "Place",
+    foundedPlacePlaceholder: "Kiev, Moscow...",
+    founderName: "Founder",
+    founderNamePlaceholder: "A. Augustinavichyute, V. Gulenko...",
+    founderHint: "Founder as text. If they are a platform user, they can join.",
+    founderLabel: "Founder",
+    websiteUrl: "Website",
+    create: "Create",
+    literatureTitle: "Literature and sources",
+    literatureEmpty: "No sources yet.",
+    membersTitle: "Members",
+    sourcesShort: "src",
+    membersShort: "mem",
+    addSourceButton: "Add source",
+    addSourceConfirm: "Add",
+    sourceKind: "Kind",
+    sourceTitle: "Title",
+    sourceAuthors: "Authors",
+    sourceYear: "Year",
+    sourceUrl: "URL",
+    sourceDescription: "Short description",
+    sourceKinds: {
+      book: "Book",
+      article: "Article",
+      paper: "Paper",
+      video: "Video",
+      podcast: "Podcast",
+      website: "Website",
+      other: "Other",
+    },
+    join: "I'm from here",
+    leave: "Leave",
+  },
+  trending: {
+    title: "Trending",
+    subtitle: "Top interpretations from the last 7 days.",
+  },
+  influences: {
+    title: "Who influenced me",
+    empty: "Nobody listed yet.",
+    add: "Add influence",
+    influencerUsername: "Username of a platform user",
+    influencerExternal: "Or name of an external author (e.g. classic)",
+    note: "How they influenced you",
+    addExternalHelp:
+      "External authors are stored as plain text, not linked to an account.",
+  },
+  mentor: {
+    available: "I can mentor",
+    seeking: "Seeking a mentor",
+    flagsTitle: "Mentorship",
+  },
   theories: {
     title: "Theories",
     subtitle:
@@ -846,10 +1044,13 @@ const en: Dictionary = {
     rolesHint: "Pick one or more. You can add a custom one. Up to 8.",
     rolesCustomPlaceholder: "Custom role...",
     manageLinks: "Manage links",
+    manageAffiliations: "Schools and mentorship",
     addLink: "Add",
     linksClose: "Done",
     linkLabelPlaceholder: "Label (e.g. My channel)",
     linksTitle: "Links",
+    schoolsLabel: "Schools I belong to",
+    schoolsHint: "Pick any number. Schools are created on /schools.",
   },
   publications: {
     title: "Publications",
