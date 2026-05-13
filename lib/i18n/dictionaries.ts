@@ -513,6 +513,41 @@ export type Dictionary = {
     selfNotAllowed: string;
     added: string;
   };
+  dm: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    sendButton: string;
+    placeholder: string;
+    sendToProfile: string;
+    me: string;
+    backToList: string;
+    threadEmpty: string;
+    unreadShort: string;
+    typingPlaceholder: string;
+  };
+  polls: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    create: string;
+    loginToCreate: string;
+    questionLabel: string;
+    questionPlaceholder: string;
+    descriptionLabel: string;
+    slugLabel: string;
+    optionLabel: string;
+    addOption: string;
+    removeOption: string;
+    closesAt: string;
+    publish: string;
+    voteHint: string;
+    voteCount: string;
+    voted: string;
+    closed: string;
+    backToList: string;
+    by: string;
+  };
   health: {
     label: string;
     stub: string;
@@ -1062,6 +1097,41 @@ const ru: Dictionary = {
     selfNotAllowed: "Себя добавлять не нужно",
     added: "Добавлен",
   },
+  dm: {
+    title: "Сообщения",
+    subtitle: "Личные диалоги один на один.",
+    empty: "Диалогов пока нет.",
+    sendButton: "Отправить",
+    placeholder: "Написать сообщение...",
+    sendToProfile: "Написать",
+    me: "ты",
+    backToList: "← К списку",
+    threadEmpty: "В этом диалоге ещё нет сообщений. Напиши первым.",
+    unreadShort: "новых",
+    typingPlaceholder: "Сообщение...",
+  },
+  polls: {
+    title: "Опросы",
+    subtitle: "Сообщество голосует. Хороший способ потипировать через коллективный разум.",
+    empty: "Опросов пока нет.",
+    create: "Создать опрос",
+    loginToCreate: "Войди чтобы создать",
+    questionLabel: "Вопрос",
+    questionPlaceholder: "Какой ТИМ у этого персонажа?",
+    descriptionLabel: "Контекст (опц.)",
+    slugLabel: "Slug",
+    optionLabel: "Вариант",
+    addOption: "+ Добавить вариант",
+    removeOption: "удалить",
+    closesAt: "Закрыть до (опц.)",
+    publish: "Опубликовать",
+    voteHint: "Свой голос можно поменять.",
+    voteCount: "голосов",
+    voted: "Голос учтён",
+    closed: "Голосование закрыто",
+    backToList: "← Ко всем опросам",
+    by: "автор",
+  },
   health: {
     label: "Состояние сервера",
     stub: "Stub-режим: данные из mock-слоя, БД не подключена.",
@@ -1610,6 +1680,41 @@ const en: Dictionary = {
     notFound: "User not found",
     selfNotAllowed: "Can't add yourself",
     added: "Added",
+  },
+  dm: {
+    title: "Messages",
+    subtitle: "Private one-on-one conversations.",
+    empty: "No conversations yet.",
+    sendButton: "Send",
+    placeholder: "Write a message...",
+    sendToProfile: "Message",
+    me: "you",
+    backToList: "← Back",
+    threadEmpty: "No messages here yet. Be the first.",
+    unreadShort: "new",
+    typingPlaceholder: "Message...",
+  },
+  polls: {
+    title: "Polls",
+    subtitle: "The community votes — great for typing-by-crowd.",
+    empty: "No polls yet.",
+    create: "Create poll",
+    loginToCreate: "Sign in to create",
+    questionLabel: "Question",
+    questionPlaceholder: "What TIM is this character?",
+    descriptionLabel: "Context (opt.)",
+    slugLabel: "Slug",
+    optionLabel: "Option",
+    addOption: "+ Add option",
+    removeOption: "remove",
+    closesAt: "Closes at (opt.)",
+    publish: "Publish",
+    voteHint: "You can change your vote.",
+    voteCount: "votes",
+    voted: "Vote recorded",
+    closed: "Voting closed",
+    backToList: "← Back to polls",
+    by: "by",
   },
   health: {
     label: "Server status",

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { FollowButton } from "@/components/socionics/follow-button";
+import { StartDmButton } from "@/components/socionics/start-dm-button";
 import { ProfileEditActions } from "@/components/socionics/profile-actions";
 import { ProfileProducts } from "@/components/socionics/profile-products";
 import { ProfilePublications } from "@/components/socionics/profile-publications";
@@ -231,13 +232,22 @@ export default async function UserProfilePage({
               dict={dict}
             />
           ) : (
-            <FollowButton
-              username={user.username}
-              initialFollowing={viewerIsFollowing}
-              dict={dict}
-              loginHref={`/${lang}/login?callbackUrl=/${lang}/u/${user.username}`}
-              isAuthed={isAuthed}
-            />
+            <div className="flex items-center gap-2 flex-wrap">
+              <FollowButton
+                username={user.username}
+                initialFollowing={viewerIsFollowing}
+                dict={dict}
+                loginHref={`/${lang}/login?callbackUrl=/${lang}/u/${user.username}`}
+                isAuthed={isAuthed}
+              />
+              <StartDmButton
+                username={user.username}
+                isAuthed={isAuthed}
+                loginHref={`/${lang}/login?callbackUrl=/${lang}/u/${user.username}`}
+                lang={lang}
+                dict={dict}
+              />
+            </div>
           )}
         </div>
       </header>

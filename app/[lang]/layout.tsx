@@ -74,6 +74,12 @@ export default async function LocaleLayout({
             >
               {dict.events.title}
             </Link>
+            <Link
+              href={`/${lang}/polls`}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {dict.polls.title}
+            </Link>
           </nav>
           <div className="flex-1" />
           <SearchBar lang={lang} dict={dict} />
@@ -88,6 +94,24 @@ export default async function LocaleLayout({
             {session?.user ? (
               <>
                 <NotificationBell lang={lang} dict={dict} />
+                <Link
+                  href={`/${lang}/messages`}
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"
+                  title={dict.dm.title}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-5"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </Link>
                 <Link
                   href={`/${lang}/bookmarks`}
                   className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"

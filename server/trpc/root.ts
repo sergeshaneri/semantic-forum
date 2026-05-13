@@ -4,6 +4,7 @@ import { authRouter } from "./routers/auth";
 import { bookmarkRouter } from "./routers/bookmark";
 import { collectionRouter } from "./routers/collection";
 import { commentRouter } from "./routers/comment";
+import { dmRouter } from "./routers/dm";
 import { entityRouter } from "./routers/entity";
 import { entityRelationRouter } from "./routers/entityRelation";
 import { eventRouter } from "./routers/event";
@@ -11,6 +12,7 @@ import { healthRouter } from "./routers/health";
 import { interpretationRouter } from "./routers/interpretation";
 import { leaderboardRouter } from "./routers/leaderboard";
 import { notificationRouter } from "./routers/notification";
+import { pollRouter } from "./routers/poll";
 import { productRouter } from "./routers/product";
 import { publicationRouter } from "./routers/publication";
 import { answerRouter, questionRouter } from "./routers/question";
@@ -51,6 +53,8 @@ export const appRouter = createTRPCRouter({
   answer: answerRouter,
   event: eventRouter,
   stats: statsRouter,
+  dm: dmRouter,
+  poll: pollRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -77,6 +77,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "interpretation_voted",
   "follow",
   "review",
+  "message",
 ]);
 export const bookmarkTargetEnum = pgEnum("bookmark_target", [
   "entity",
@@ -718,6 +719,76 @@ export const publicationRevisions = pgTable("publication_revisions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ----- Direct messages -----
+
+export const conversations = pgTable("conversations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastMessageAt: timestamp("last_message_at"),
+});
+
+export const conversationParticipants = pgTable(
+  "conversation_participants",
+  {
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lastReadAt: timestamp("last_read_at"),
+    joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.conversationId, t.userId] })],
+);
+
+export const messages = pgTable("messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  conversationId: uuid("conversation_id")
+    .notNull()
+    .references(() => conversations.id, { onDelete: "cascade" }),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ----- Polls -----
+
+export const polls = pgTable(
+  "polls",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: varchar("slug", { length: 200 }).notNull(),
+    question: varchar("question", { length: 500 }).notNull(),
+    description: text("description"),
+    options: jsonb("options").notNull(), // string[]
+    language: langEnum("language").notNull(),
+    createdBy: text("created_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    closesAt: timestamp("closes_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("polls_slug_lang_idx").on(t.slug, t.language)],
+);
+
+export const pollVotes = pgTable(
+  "poll_votes",
+  {
+    pollId: uuid("poll_id")
+      .notNull()
+      .references(() => polls.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    optionIndex: integer("option_index").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.pollId, t.userId] })],
+);
+
 // ----- Co-authorship -----
 
 export const interpretationCoauthors = pgTable(
@@ -824,6 +895,49 @@ export const publicationRevisionsRelations = relations(
     }),
   }),
 );
+
+export const conversationsRelations = relations(conversations, ({ many }) => ({
+  participants: many(conversationParticipants),
+  messages: many(messages),
+}));
+
+export const conversationParticipantsRelations = relations(
+  conversationParticipants,
+  ({ one }) => ({
+    conversation: one(conversations, {
+      fields: [conversationParticipants.conversationId],
+      references: [conversations.id],
+    }),
+    user: one(users, {
+      fields: [conversationParticipants.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  author: one(users, {
+    fields: [messages.authorId],
+    references: [users.id],
+  }),
+}));
+
+export const pollsRelations = relations(polls, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [polls.createdBy],
+    references: [users.id],
+  }),
+  votes: many(pollVotes),
+}));
+
+export const pollVotesRelations = relations(pollVotes, ({ one }) => ({
+  poll: one(polls, { fields: [pollVotes.pollId], references: [polls.id] }),
+  user: one(users, { fields: [pollVotes.userId], references: [users.id] }),
+}));
 
 export const interpretationCoauthorsRelations = relations(
   interpretationCoauthors,
