@@ -100,6 +100,12 @@ export const voteTargetEnum = pgEnum("vote_target", [
   "interpretation",
   "comment",
   "answer",
+  "group_post",
+]);
+export const groupMemberRoleEnum = pgEnum("group_member_role", [
+  "owner",
+  "moderator",
+  "member",
 ]);
 export const eventKindEnum = pgEnum("event_kind", [
   "online",
@@ -754,6 +760,76 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ----- Groups / Communities -----
+
+export const groups = pgTable(
+  "groups",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: varchar("slug", { length: 200 }).notNull(),
+    name: varchar("name", { length: 200 }).notNull(),
+    description: text("description"),
+    language: langEnum("language").notNull(),
+    ownerId: text("owner_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    isPrivate: boolean("is_private").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("groups_slug_lang_idx").on(t.slug, t.language)],
+);
+
+export const groupMembers = pgTable(
+  "group_members",
+  {
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: groupMemberRoleEnum("role").default("member").notNull(),
+    joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.groupId, t.userId] })],
+);
+
+export const groupPosts = pgTable(
+  "group_posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    authorId: text("author_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    title: varchar("title", { length: 300 }).notNull(),
+    slug: varchar("slug", { length: 200 }).notNull(),
+    body: text("body").notNull(),
+    language: langEnum("language").notNull(),
+    votesUp: integer("votes_up").default(0).notNull(),
+    votesDown: integer("votes_down").default(0).notNull(),
+    score: integer("score").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
+  },
+  (t) => [uniqueIndex("group_posts_group_slug_idx").on(t.groupId, t.slug)],
+);
+
+export const groupPostComments = pgTable("group_post_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  groupPostId: uuid("group_post_id")
+    .notNull()
+    .references(() => groupPosts.id, { onDelete: "cascade" }),
+  authorId: text("author_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at"),
+});
+
 // ----- Polls -----
 
 export const polls = pgTable(
@@ -891,6 +967,49 @@ export const publicationRevisionsRelations = relations(
     }),
     editor: one(users, {
       fields: [publicationRevisions.editorId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const groupsRelations = relations(groups, ({ one, many }) => ({
+  owner: one(users, { fields: [groups.ownerId], references: [users.id] }),
+  members: many(groupMembers),
+  posts: many(groupPosts),
+}));
+
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+  group: one(groups, {
+    fields: [groupMembers.groupId],
+    references: [groups.id],
+  }),
+  user: one(users, {
+    fields: [groupMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const groupPostsRelations = relations(groupPosts, ({ one, many }) => ({
+  group: one(groups, {
+    fields: [groupPosts.groupId],
+    references: [groups.id],
+  }),
+  author: one(users, {
+    fields: [groupPosts.authorId],
+    references: [users.id],
+  }),
+  comments: many(groupPostComments),
+}));
+
+export const groupPostCommentsRelations = relations(
+  groupPostComments,
+  ({ one }) => ({
+    post: one(groupPosts, {
+      fields: [groupPostComments.groupPostId],
+      references: [groupPosts.id],
+    }),
+    author: one(users, {
+      fields: [groupPostComments.authorId],
       references: [users.id],
     }),
   }),

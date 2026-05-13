@@ -80,6 +80,12 @@ export default async function LocaleLayout({
             >
               {dict.polls.title}
             </Link>
+            <Link
+              href={`/${lang}/groups`}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {dict.groups.title}
+            </Link>
           </nav>
           <div className="flex-1" />
           <SearchBar lang={lang} dict={dict} />

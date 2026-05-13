@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { AddToCollectionMenu } from "@/components/socionics/add-to-collection-menu";
 import { BookmarkButton } from "@/components/socionics/bookmark-button";
 import { CoauthorsManager } from "@/components/socionics/coauthors-manager";
@@ -648,18 +649,26 @@ function DeleteComment({
 }) {
   const del = trpc.comment.delete.useMutation();
   return (
-    <button
-      type="button"
-      onClick={async () => {
-        if (!confirm(dict.actions.confirmDelete)) return;
+    <ConfirmDialog
+      title={dict.actions.confirmTitle}
+      description={dict.actions.confirmDelete}
+      confirmLabel={dict.actions.delete}
+      cancelLabel={dict.actions.cancel}
+      onConfirm={async () => {
         await del.mutateAsync({ id });
         onDeleted();
       }}
-      disabled={del.isPending}
-      className="text-[11px] hover:text-rose-600 transition-colors"
-    >
-      {dict.actions.delete}
-    </button>
+      trigger={(open) => (
+        <button
+          type="button"
+          onClick={open}
+          disabled={del.isPending}
+          className="text-[11px] hover:text-rose-600 transition-colors"
+        >
+          {dict.actions.delete}
+        </button>
+      )}
+    />
   );
 }
 
@@ -674,18 +683,26 @@ function DeleteInterpretation({
 }) {
   const del = trpc.interpretation.delete.useMutation();
   return (
-    <button
-      type="button"
-      onClick={async () => {
-        if (!confirm(dict.actions.confirmDeleteInterpretation)) return;
+    <ConfirmDialog
+      title={dict.actions.confirmTitle}
+      description={dict.actions.confirmDeleteInterpretation}
+      confirmLabel={dict.actions.delete}
+      cancelLabel={dict.actions.cancel}
+      onConfirm={async () => {
         await del.mutateAsync({ id });
         onDeleted();
       }}
-      disabled={del.isPending}
-      className="text-xs hover:text-rose-600 transition-colors"
-    >
-      {dict.actions.delete}
-    </button>
+      trigger={(open) => (
+        <button
+          type="button"
+          onClick={open}
+          disabled={del.isPending}
+          className="text-xs hover:text-rose-600 transition-colors"
+        >
+          {dict.actions.delete}
+        </button>
+      )}
+    />
   );
 }
 

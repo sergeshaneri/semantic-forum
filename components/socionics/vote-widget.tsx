@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc/react";
 
 type Props = {
-  targetType: "interpretation" | "comment" | "answer";
+  targetType: "interpretation" | "comment" | "answer" | "group_post";
   targetId: string;
   score: number;
   votesUp: number;

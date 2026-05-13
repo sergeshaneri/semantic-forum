@@ -3,20 +3,29 @@ import { z } from "zod";
 import {
   answers,
   comments,
+  groupPosts,
   interpretations,
   votes,
 } from "@/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../init";
 
+const TARGET_TYPES = [
+  "interpretation",
+  "comment",
+  "answer",
+  "group_post",
+] as const;
+type TargetType = (typeof TARGET_TYPES)[number];
+
 const castSchema = z.object({
-  targetType: z.enum(["interpretation", "comment", "answer"]),
+  targetType: z.enum(TARGET_TYPES),
   targetId: z.string().uuid(),
   value: z.union([z.literal(1), z.literal(-1)]),
 });
 
 async function recountTarget(
   db: typeof import("@/server/db").db,
-  targetType: "interpretation" | "comment" | "answer",
+  targetType: TargetType,
   targetId: string,
 ) {
   const [agg] = await db
@@ -42,11 +51,16 @@ async function recountTarget(
       .update(comments)
       .set({ votesUp: up, votesDown: down })
       .where(eq(comments.id, targetId));
-  } else {
+  } else if (targetType === "answer") {
     await db
       .update(answers)
       .set({ votesUp: up, votesDown: down, score: up - down })
       .where(eq(answers.id, targetId));
+  } else {
+    await db
+      .update(groupPosts)
+      .set({ votesUp: up, votesDown: down, score: up - down })
+      .where(eq(groupPosts.id, targetId));
   }
 
   return { votesUp: up, votesDown: down, score: up - down };

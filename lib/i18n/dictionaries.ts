@@ -266,6 +266,8 @@ export type Dictionary = {
     edit: string;
     delete: string;
     save: string;
+    cancel: string;
+    confirmTitle: string;
     confirmDelete: string;
     confirmDeleteInterpretation: string;
     confirmDeleteEntity: string;
@@ -547,6 +549,39 @@ export type Dictionary = {
     closed: string;
     backToList: string;
     by: string;
+  };
+  groups: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    create: string;
+    loginToCreate: string;
+    join: string;
+    leave: string;
+    membersTitle: string;
+    membersShort: string;
+    postsShort: string;
+    postsTitle: string;
+    newPost: string;
+    loginToPost: string;
+    joinToPost: string;
+    postTitle: string;
+    postBody: string;
+    publish: string;
+    backToList: string;
+    backToGroup: string;
+    privateLabel: string;
+    addCommentTitle: string;
+    commentPlaceholder: string;
+    publishComment: string;
+    noComments: string;
+    by: string;
+    ownerLabel: string;
+    formName: string;
+    formNamePlaceholder: string;
+    formSlug: string;
+    formDescription: string;
+    formPrivate: string;
   };
   health: {
     label: string;
@@ -840,6 +875,8 @@ const ru: Dictionary = {
     edit: "редактировать",
     delete: "удалить",
     save: "Сохранить",
+    cancel: "Отмена",
+    confirmTitle: "Подтверди удаление",
     confirmDelete: "Удалить?",
     confirmDeleteInterpretation: "Удалить интерпретацию вместе со всеми комментариями?",
     confirmDeleteEntity:
@@ -1109,6 +1146,40 @@ const ru: Dictionary = {
     threadEmpty: "В этом диалоге ещё нет сообщений. Напиши первым.",
     unreadShort: "новых",
     typingPlaceholder: "Сообщение...",
+  },
+  groups: {
+    title: "Группы",
+    subtitle:
+      "Сообщества по интересам. Reddit-стиль: вступай, публикуй посты, обсуждай.",
+    empty: "Групп пока нет.",
+    create: "Создать группу",
+    loginToCreate: "Войди чтобы создать",
+    join: "Вступить",
+    leave: "Покинуть",
+    membersTitle: "Участники",
+    membersShort: "уч.",
+    postsShort: "постов",
+    postsTitle: "Посты",
+    newPost: "Новый пост",
+    loginToPost: "Войди чтобы постить",
+    joinToPost: "Вступи в группу чтобы публиковать",
+    postTitle: "Заголовок",
+    postBody: "Текст поста",
+    publish: "Опубликовать",
+    backToList: "← Ко всем группам",
+    backToGroup: "← К группе",
+    privateLabel: "Приватная",
+    addCommentTitle: "Комментарии",
+    commentPlaceholder: "Что думаешь?",
+    publishComment: "Отправить",
+    noComments: "Пока нет комментариев.",
+    by: "автор",
+    ownerLabel: "Владелец",
+    formName: "Название",
+    formNamePlaceholder: "Например: Гуманитарная соционика",
+    formSlug: "Slug",
+    formDescription: "Описание",
+    formPrivate: "Приватная (только по приглашениям)",
   },
   polls: {
     title: "Опросы",
@@ -1423,6 +1494,8 @@ const en: Dictionary = {
     edit: "edit",
     delete: "delete",
     save: "Save",
+    cancel: "Cancel",
+    confirmTitle: "Confirm delete",
     confirmDelete: "Delete?",
     confirmDeleteInterpretation:
       "Delete this interpretation and all its comments?",
@@ -1693,6 +1766,40 @@ const en: Dictionary = {
     threadEmpty: "No messages here yet. Be the first.",
     unreadShort: "new",
     typingPlaceholder: "Message...",
+  },
+  groups: {
+    title: "Groups",
+    subtitle:
+      "Interest communities, Reddit-style — join, post, discuss.",
+    empty: "No groups yet.",
+    create: "Create group",
+    loginToCreate: "Sign in to create",
+    join: "Join",
+    leave: "Leave",
+    membersTitle: "Members",
+    membersShort: "members",
+    postsShort: "posts",
+    postsTitle: "Posts",
+    newPost: "New post",
+    loginToPost: "Sign in to post",
+    joinToPost: "Join the group to post",
+    postTitle: "Title",
+    postBody: "Post body",
+    publish: "Publish",
+    backToList: "← Back to groups",
+    backToGroup: "← Back to group",
+    privateLabel: "Private",
+    addCommentTitle: "Comments",
+    commentPlaceholder: "What do you think?",
+    publishComment: "Send",
+    noComments: "No comments yet.",
+    by: "by",
+    ownerLabel: "Owner",
+    formName: "Name",
+    formNamePlaceholder: "e.g. Humanitarian socionics",
+    formSlug: "Slug",
+    formDescription: "Description",
+    formPrivate: "Private (invite only)",
   },
   polls: {
     title: "Polls",

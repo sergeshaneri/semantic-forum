@@ -8,6 +8,7 @@ import { dmRouter } from "./routers/dm";
 import { entityRouter } from "./routers/entity";
 import { entityRelationRouter } from "./routers/entityRelation";
 import { eventRouter } from "./routers/event";
+import { groupRouter } from "./routers/group";
 import { healthRouter } from "./routers/health";
 import { interpretationRouter } from "./routers/interpretation";
 import { leaderboardRouter } from "./routers/leaderboard";
@@ -55,6 +56,7 @@ export const appRouter = createTRPCRouter({
   stats: statsRouter,
   dm: dmRouter,
   poll: pollRouter,
+  group: groupRouter,
 });
 
 export type AppRouter = typeof appRouter;
