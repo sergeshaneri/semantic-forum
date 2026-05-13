@@ -725,6 +725,23 @@ export const publicationRevisions = pgTable("publication_revisions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ----- API keys (Bearer auth for CLIs and AI agents) -----
+
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  keyHash: varchar("key_hash", { length: 128 }).notNull().unique(),
+  prefix: varchar("prefix", { length: 32 }).notNull(),
+  label: varchar("label", { length: 200 }),
+  scopes: jsonb("scopes").$type<string[]>().default([]).notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+  expiresAt: timestamp("expires_at"),
+  revokedAt: timestamp("revoked_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // ----- Annotations (Genius-style notes on materials/entities) -----
 
 export const annotations = pgTable("annotations", {
@@ -990,6 +1007,10 @@ export const publicationRevisionsRelations = relations(
     }),
   }),
 );
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  user: one(users, { fields: [apiKeys.userId], references: [users.id] }),
+}));
 
 export const annotationsRelations = relations(annotations, ({ one }) => ({
   entity: one(entities, {

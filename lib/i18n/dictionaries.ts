@@ -561,6 +561,58 @@ export type Dictionary = {
     quoteLabel: string;
     findInText: string;
   };
+  apiKeys: {
+    title: string;
+    subtitle: string;
+    docsLink: string;
+    create: string;
+    empty: string;
+    labelLabel: string;
+    labelPlaceholder: string;
+    scopesLabel: string;
+    expiresLabel: string;
+    expiresNever: string;
+    expiresDays: string;
+    createButton: string;
+    saveCopyTitle: string;
+    saveCopyHint: string;
+    copy: string;
+    copied: string;
+    closeNotice: string;
+    revoke: string;
+    revoked: string;
+    revokedAt: string;
+    expired: string;
+    expiresOn: string;
+    neverUsed: string;
+    lastUsed: string;
+    createdAt: string;
+    scopeRead: string;
+    scopeWriteContent: string;
+    scopeWriteSocial: string;
+    scopeAdmin: string;
+    scopeReadHint: string;
+    scopeWriteContentHint: string;
+    scopeWriteSocialHint: string;
+    scopeAdminHint: string;
+    confirmRevokeTitle: string;
+    confirmRevokeBody: string;
+  };
+  apiDocs: {
+    title: string;
+    intro: string;
+    authTitle: string;
+    authIntro: string;
+    formatTitle: string;
+    formatIntro: string;
+    examplesTitle: string;
+    examplesIntro: string;
+    rateLimitTitle: string;
+    rateLimitNote: string;
+    safetyTitle: string;
+    safetyNote: string;
+    getKey: string;
+  };
   tags: {
     title: string;
     notFound: string;
@@ -1163,6 +1215,70 @@ const ru: Dictionary = {
     threadEmpty: "В этом диалоге ещё нет сообщений. Напиши первым.",
     unreadShort: "новых",
     typingPlaceholder: "Сообщение...",
+  },
+  apiKeys: {
+    title: "API-ключи",
+    subtitle:
+      "Bearer-токены для CLI, ботов и AI-агентов. Действуют как ты — генерируй с минимально нужными правами.",
+    docsLink: "Документация API →",
+    create: "Создать ключ",
+    empty: "Ключей пока нет.",
+    labelLabel: "Подпись (для себя)",
+    labelPlaceholder: "Бот для импорта статей",
+    scopesLabel: "Права",
+    expiresLabel: "Срок жизни",
+    expiresNever: "Без срока",
+    expiresDays: "дней",
+    createButton: "Сгенерировать",
+    saveCopyTitle: "Сохрани ключ сейчас — позже его не показать",
+    saveCopyHint:
+      "После закрытия диалога секрет уже не увидеть. Если потерял — отзови и создай новый.",
+    copy: "Скопировать",
+    copied: "Скопировано",
+    closeNotice: "Я сохранил ключ",
+    revoke: "Отозвать",
+    revoked: "Отозван",
+    revokedAt: "Отозван",
+    expired: "Истёк",
+    expiresOn: "Истекает",
+    neverUsed: "Не использовался",
+    lastUsed: "Последний раз",
+    createdAt: "Создан",
+    scopeRead: "Чтение",
+    scopeWriteContent: "Запись: контент",
+    scopeWriteSocial: "Запись: соц. действия",
+    scopeAdmin: "Управление ключами",
+    scopeReadHint: "Получать данные через GET (где применимо).",
+    scopeWriteContentHint:
+      "Создавать сущности, теории, публикации, посты, опросы.",
+    scopeWriteSocialHint:
+      "Голоса, комментарии, подписки, RSVP, закладки.",
+    scopeAdminHint:
+      "Управлять API-ключами. По соображениям безопасности недоступно через сам API-ключ — только из браузера.",
+    confirmRevokeTitle: "Отозвать ключ?",
+    confirmRevokeBody:
+      "После отзыва ключ перестанет работать сразу. Всех агентов, что им пользуются, нужно будет переподключить.",
+  },
+  apiDocs: {
+    title: "HTTP API",
+    intro:
+      "Все мутации платформы доступны как tRPC-эндпоинты на /api/trpc/<router>.<method>. Аутентификация — Bearer-токеном из настроек.",
+    authTitle: "Аутентификация",
+    authIntro:
+      "Сгенерируй ключ в настройках и передавай его в заголовке Authorization. Ключ показывается ОДИН раз — сохрани сразу.",
+    formatTitle: "Формат запросов",
+    formatIntro:
+      "tRPC использует superjson. Тело — JSON с ключом 'json' (и опционально 'meta' для дат / Map). Ответ — то же. Для query-параметров используй ?input=<json-encoded>. Для мутаций — POST с JSON-телом.",
+    examplesTitle: "Примеры",
+    examplesIntro:
+      "Создать сущность, добавить интерпретацию, найти что-то — самые частые операции для агентов.",
+    rateLimitTitle: "Лимиты",
+    rateLimitNote:
+      "Сейчас явных rate-limit нет, но ведём счётчик lastUsedAt. Если поток запросов нарушит работу платформы — ключ может быть отозван.",
+    safetyTitle: "Безопасность",
+    safetyNote:
+      "Не публикуй ключ в открытых репозиториях. Создавай отдельный ключ для каждого бота / агента. Если есть подозрение на утечку — отзови немедленно. Управление ключами доступно только из браузера, не через сам API-ключ.",
+    getKey: "Получить ключ →",
   },
   annotations: {
     title: "Аннотации к материалу",
@@ -1801,6 +1917,69 @@ const en: Dictionary = {
     threadEmpty: "No messages here yet. Be the first.",
     unreadShort: "new",
     typingPlaceholder: "Message...",
+  },
+  apiKeys: {
+    title: "API keys",
+    subtitle:
+      "Bearer tokens for CLIs, bots and AI agents. They act as you — grant the minimum scopes you need.",
+    docsLink: "API docs →",
+    create: "Create key",
+    empty: "No keys yet.",
+    labelLabel: "Label (for yourself)",
+    labelPlaceholder: "Article import bot",
+    scopesLabel: "Scopes",
+    expiresLabel: "Expires in",
+    expiresNever: "Never",
+    expiresDays: "days",
+    createButton: "Generate",
+    saveCopyTitle: "Save this key now — you won't see it again",
+    saveCopyHint:
+      "Once you close this dialog, the secret is gone. If you lose it, revoke and create a new one.",
+    copy: "Copy",
+    copied: "Copied",
+    closeNotice: "I saved the key",
+    revoke: "Revoke",
+    revoked: "Revoked",
+    revokedAt: "Revoked",
+    expired: "Expired",
+    expiresOn: "Expires",
+    neverUsed: "Never used",
+    lastUsed: "Last used",
+    createdAt: "Created",
+    scopeRead: "Read",
+    scopeWriteContent: "Write: content",
+    scopeWriteSocial: "Write: social",
+    scopeAdmin: "Manage keys",
+    scopeReadHint: "Fetch data via GET endpoints (where supported).",
+    scopeWriteContentHint:
+      "Create entities, theories, publications, posts, polls.",
+    scopeWriteSocialHint: "Votes, comments, follows, RSVPs, bookmarks.",
+    scopeAdminHint:
+      "Manage API keys. For security, not honored from API keys themselves — browser only.",
+    confirmRevokeTitle: "Revoke this key?",
+    confirmRevokeBody:
+      "Once revoked the key stops working immediately. Any agent using it will need a new key.",
+  },
+  apiDocs: {
+    title: "HTTP API",
+    intro:
+      "All platform mutations are exposed as tRPC endpoints at /api/trpc/<router>.<method>. Authentication is via a Bearer token from settings.",
+    authTitle: "Authentication",
+    authIntro:
+      "Generate a key in settings and pass it via the Authorization header. The full secret is shown ONCE — save it then.",
+    formatTitle: "Request format",
+    formatIntro:
+      "tRPC uses superjson. Body is JSON with a 'json' key (and optional 'meta' for Dates / Maps). For queries, encode inputs as ?input=<json-encoded>. For mutations, POST with JSON body.",
+    examplesTitle: "Examples",
+    examplesIntro:
+      "Create an entity, add an interpretation, run a search — the common moves for agents.",
+    rateLimitTitle: "Rate limits",
+    rateLimitNote:
+      "No hard limits yet, but we track lastUsedAt. Abusive traffic will get the key revoked.",
+    safetyTitle: "Safety",
+    safetyNote:
+      "Don't publish keys in open repos. Use one key per bot. Revoke immediately on suspected leak. Key management is browser-only — not callable via an API key itself.",
+    getKey: "Get a key →",
   },
   annotations: {
     title: "Material annotations",

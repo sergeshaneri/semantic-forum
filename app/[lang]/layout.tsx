@@ -189,13 +189,27 @@ export default async function LocaleLayout({
             >
               {dict.stats.title}
             </Link>
+            <Link
+              href={`/${lang}/docs/api`}
+              className="hover:text-foreground transition-colors"
+            >
+              {dict.apiDocs.title}
+            </Link>
             {sessionUser && (
-              <Link
-                href={`/${lang}/collections`}
-                className="hover:text-foreground transition-colors"
-              >
-                {dict.collections.title}
-              </Link>
+              <>
+                <Link
+                  href={`/${lang}/collections`}
+                  className="hover:text-foreground transition-colors"
+                >
+                  {dict.collections.title}
+                </Link>
+                <Link
+                  href={`/${lang}/settings/api-keys`}
+                  className="hover:text-foreground transition-colors"
+                >
+                  {dict.apiKeys.title}
+                </Link>
+              </>
             )}
           </nav>
         </div>

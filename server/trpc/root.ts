@@ -1,6 +1,7 @@
 import { createCallerFactory, createTRPCRouter } from "./init";
 import { affiliationRouter } from "./routers/affiliation";
 import { annotationRouter } from "./routers/annotation";
+import { apiKeyRouter } from "./routers/apiKey";
 import { authRouter } from "./routers/auth";
 import { bookmarkRouter } from "./routers/bookmark";
 import { collectionRouter } from "./routers/collection";
@@ -61,6 +62,7 @@ export const appRouter = createTRPCRouter({
   group: groupRouter,
   annotation: annotationRouter,
   tag: tagRouter,
+  apiKey: apiKeyRouter,
 });
 
 export type AppRouter = typeof appRouter;
