@@ -16,6 +16,7 @@ import { publicationRouter } from "./routers/publication";
 import { answerRouter, questionRouter } from "./routers/question";
 import { schoolRouter, sourceRouter } from "./routers/school";
 import { searchRouter } from "./routers/search";
+import { statsRouter } from "./routers/stats";
 import { theoryRouter } from "./routers/theory";
 import { theoryObjectRouter } from "./routers/theoryObject";
 import { trendingRouter } from "./routers/trending";
@@ -49,6 +50,7 @@ export const appRouter = createTRPCRouter({
   question: questionRouter,
   answer: answerRouter,
   event: eventRouter,
+  stats: statsRouter,
 });
 
 export type AppRouter = typeof appRouter;

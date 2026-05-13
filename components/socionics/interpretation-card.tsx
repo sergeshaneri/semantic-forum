@@ -9,7 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AddToCollectionMenu } from "@/components/socionics/add-to-collection-menu";
 import { BookmarkButton } from "@/components/socionics/bookmark-button";
+import { CoauthorsManager } from "@/components/socionics/coauthors-manager";
 import { Markdown } from "@/components/socionics/markdown";
+import { RevisionHistory } from "@/components/socionics/revision-history";
 import { VoteWidget } from "@/components/socionics/vote-widget";
 import { StanceBadge, type Stance } from "@/components/socionics/stance-badge";
 import { trpc } from "@/lib/trpc/react";
@@ -34,8 +36,29 @@ type Comment = {
   votesDown: number;
   userVote: 1 | -1 | 0;
   authorId: string | null;
+  parentCommentId: string | null;
   author: CommentAuthor;
 };
+
+const MAX_THREAD_DEPTH = 3;
+
+type CommentNode = Comment & { children: CommentNode[] };
+
+function buildTree(flat: Comment[]): CommentNode[] {
+  const byId = new Map<string, CommentNode>();
+  for (const c of flat) {
+    byId.set(c.id, { ...c, children: [] });
+  }
+  const roots: CommentNode[] = [];
+  for (const node of byId.values()) {
+    if (node.parentCommentId && byId.has(node.parentCommentId)) {
+      byId.get(node.parentCommentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
 
 type Props = {
   lang: Locale;
@@ -196,9 +219,26 @@ export function InterpretationCard({
                 }}
               />
             ) : (
-              <div className="text-[15px]">
-                <Markdown>{i.body}</Markdown>
-              </div>
+              <>
+                <div className="text-[15px]">
+                  <Markdown>{i.body}</Markdown>
+                </div>
+                <div className="flex items-start justify-between gap-3 pt-1 flex-wrap">
+                  <CoauthorsManager
+                    kind="interpretation"
+                    id={i.id}
+                    isOwner={isOwner}
+                    lang={lang}
+                    dict={dict}
+                  />
+                  <RevisionHistory
+                    kind="interpretation"
+                    id={i.id}
+                    currentBody={i.body}
+                    dict={dict}
+                  />
+                </div>
+              </>
             )}
           </CardContent>
 
@@ -240,21 +280,18 @@ export function InterpretationCard({
             )}
 
             {i.comments.length > 0 && (
-              <ul className="space-y-3">
-                {i.comments.map((c) => (
-                  <CommentItem
-                    key={c.id}
-                    comment={c}
-                    lang={lang}
-                    dict={dict}
-                    isAuthed={isAuthed}
-                    currentUserId={currentUserId}
-                    loginHref={loginHref}
-                    stanceLabel={stanceLabel}
-                    onMutated={() => router.refresh()}
-                  />
-                ))}
-              </ul>
+              <CommentTree
+                interpretationId={i.id}
+                nodes={buildTree(i.comments)}
+                lang={lang}
+                dict={dict}
+                isAuthed={isAuthed}
+                currentUserId={currentUserId}
+                loginHref={loginHref}
+                stanceLabel={stanceLabel}
+                onMutated={() => router.refresh()}
+                depth={0}
+              />
             )}
           </CardFooter>
         </div>
@@ -263,8 +300,9 @@ export function InterpretationCard({
   );
 }
 
-function CommentItem({
-  comment: c,
+function CommentTree({
+  interpretationId,
+  nodes,
   lang,
   dict,
   isAuthed,
@@ -272,8 +310,10 @@ function CommentItem({
   loginHref,
   stanceLabel,
   onMutated,
+  depth,
 }: {
-  comment: Comment;
+  interpretationId: string;
+  nodes: CommentNode[];
   lang: Locale;
   dict: Dictionary;
   isAuthed: boolean;
@@ -281,76 +321,171 @@ function CommentItem({
   loginHref: string;
   stanceLabel: (s: Stance) => string;
   onMutated: () => void;
+  depth: number;
 }) {
-  const [editing, setEditing] = useState(false);
-  const isOwner = currentUserId !== null && currentUserId === c.authorId;
   return (
-    <li className="flex items-start gap-3 text-sm leading-relaxed">
-      <VoteWidget
-        targetType="comment"
-        targetId={c.id}
-        score={c.votesUp - c.votesDown}
-        votesUp={c.votesUp}
-        votesDown={c.votesDown}
-        userVote={c.userVote}
-        isAuthed={isAuthed}
-        loginHref={loginHref}
-        size="sm"
-        className="flex-shrink-0 pt-0.5"
-      />
-      <div className="flex-1 min-w-0 space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {c.author && (
-            <Link
-              href={`/${lang}/u/${c.author.username}`}
-              className="font-medium text-foreground hover:underline underline-offset-2"
-            >
-              @{c.author.username}
-            </Link>
-          )}
-          <StanceBadge stance={c.stance} label={stanceLabel(c.stance)} />
-          {isOwner && !editing && (
-            <span className="ml-auto inline-flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className="text-[11px] hover:text-foreground transition-colors"
+    <ul className={depth === 0 ? "space-y-3" : "space-y-3 mt-3"}>
+      {nodes.map((node) => (
+        <CommentItem
+          key={node.id}
+          interpretationId={interpretationId}
+          node={node}
+          lang={lang}
+          dict={dict}
+          isAuthed={isAuthed}
+          currentUserId={currentUserId}
+          loginHref={loginHref}
+          stanceLabel={stanceLabel}
+          onMutated={onMutated}
+          depth={depth}
+        />
+      ))}
+    </ul>
+  );
+}
+
+function CommentItem({
+  interpretationId,
+  node,
+  lang,
+  dict,
+  isAuthed,
+  currentUserId,
+  loginHref,
+  stanceLabel,
+  onMutated,
+  depth,
+}: {
+  interpretationId: string;
+  node: CommentNode;
+  lang: Locale;
+  dict: Dictionary;
+  isAuthed: boolean;
+  currentUserId: string | null;
+  loginHref: string;
+  stanceLabel: (s: Stance) => string;
+  onMutated: () => void;
+  depth: number;
+}) {
+  const c = node;
+  const [editing, setEditing] = useState(false);
+  const [replying, setReplying] = useState(false);
+  const isOwner = currentUserId !== null && currentUserId === c.authorId;
+  const canReply = isAuthed && depth < MAX_THREAD_DEPTH;
+  return (
+    <li
+      className={
+        depth > 0
+          ? "border-l-2 border-border/60 pl-3 sm:pl-4"
+          : ""
+      }
+    >
+      <div className="flex items-start gap-3 text-sm leading-relaxed">
+        <VoteWidget
+          targetType="comment"
+          targetId={c.id}
+          score={c.votesUp - c.votesDown}
+          votesUp={c.votesUp}
+          votesDown={c.votesDown}
+          userVote={c.userVote}
+          isAuthed={isAuthed}
+          loginHref={loginHref}
+          size="sm"
+          className="flex-shrink-0 pt-0.5"
+        />
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {c.author && (
+              <Link
+                href={`/${lang}/u/${c.author.username}`}
+                className="font-medium text-foreground hover:underline underline-offset-2"
               >
-                {dict.actions.edit}
-              </button>
-              <DeleteComment
-                id={c.id}
-                dict={dict}
-                onDeleted={onMutated}
-              />
+                @{c.author.username}
+              </Link>
+            )}
+            <StanceBadge stance={c.stance} label={stanceLabel(c.stance)} />
+            <span className="ml-auto inline-flex items-center gap-2">
+              {canReply && !replying && (
+                <button
+                  type="button"
+                  onClick={() => setReplying(true)}
+                  className="text-[11px] hover:text-foreground transition-colors"
+                >
+                  {dict.interpretation.addComment}
+                </button>
+              )}
+              {isOwner && !editing && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="text-[11px] hover:text-foreground transition-colors"
+                  >
+                    {dict.actions.edit}
+                  </button>
+                  <DeleteComment
+                    id={c.id}
+                    dict={dict}
+                    onDeleted={onMutated}
+                  />
+                </>
+              )}
             </span>
+          </div>
+          {editing ? (
+            <EditCommentForm
+              comment={c}
+              dict={dict}
+              onCancel={() => setEditing(false)}
+              onSaved={() => {
+                setEditing(false);
+                onMutated();
+              }}
+            />
+          ) : (
+            <p className="text-foreground/90 whitespace-pre-line">{c.body}</p>
+          )}
+          {replying && (
+            <AddCommentForm
+              interpretationId={interpretationId}
+              parentCommentId={c.id}
+              dict={dict}
+              onCancel={() => setReplying(false)}
+              onCreated={() => {
+                setReplying(false);
+                onMutated();
+              }}
+            />
           )}
         </div>
-        {editing ? (
-          <EditCommentForm
-            comment={c}
-            dict={dict}
-            onCancel={() => setEditing(false)}
-            onSaved={() => {
-              setEditing(false);
-              onMutated();
-            }}
-          />
-        ) : (
-          <p className="text-foreground/90 whitespace-pre-line">{c.body}</p>
-        )}
       </div>
+      {node.children.length > 0 && (
+        <CommentTree
+          interpretationId={interpretationId}
+          nodes={node.children}
+          lang={lang}
+          dict={dict}
+          isAuthed={isAuthed}
+          currentUserId={currentUserId}
+          loginHref={loginHref}
+          stanceLabel={stanceLabel}
+          onMutated={onMutated}
+          depth={depth + 1}
+        />
+      )}
     </li>
   );
 }
 
 function AddCommentForm({
   interpretationId,
+  parentCommentId,
   dict,
   onCancel,
   onCreated,
 }: {
   interpretationId: string;
+  parentCommentId?: string;
   dict: Dictionary;
   onCancel: () => void;
   onCreated: () => void;
@@ -364,7 +499,12 @@ function AddCommentForm({
     e.preventDefault();
     setError(null);
     try {
-      await create.mutateAsync({ interpretationId, body, stance });
+      await create.mutateAsync({
+        interpretationId,
+        body,
+        stance,
+        parentCommentId,
+      });
       setBody("");
       onCreated();
     } catch (err) {

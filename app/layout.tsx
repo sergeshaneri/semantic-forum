@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { themeBootScript } from "@/components/theme-toggle";
 import { TRPCReactProvider } from "@/lib/trpc/react";
 import "./globals.css";
 
@@ -30,6 +31,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>

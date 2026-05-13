@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NotificationBell } from "@/components/socionics/notification-bell";
 import { SearchBar } from "@/components/socionics/search-bar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/auth/user-menu";
 import { auth } from "@/lib/auth/auth";
 import { SessionProvider } from "@/lib/auth/session-context";
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
           <div className="flex-1" />
           <SearchBar lang={lang} dict={dict} />
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Link
               href={`/${otherLang}`}
               className="text-muted-foreground hover:text-foreground transition-colors uppercase text-sm"
@@ -150,6 +152,12 @@ export default async function LocaleLayout({
               className="hover:text-foreground transition-colors"
             >
               {dict.mentor.pageTitle}
+            </Link>
+            <Link
+              href={`/${lang}/stats`}
+              className="hover:text-foreground transition-colors"
+            >
+              {dict.stats.title}
             </Link>
             {sessionUser && (
               <Link

@@ -688,6 +688,66 @@ export const entityTags = pgTable(
   (t) => [primaryKey({ columns: [t.entityId, t.tagId] })],
 );
 
+// ----- Versioning: revisions tables -----
+
+export const interpretationRevisions = pgTable("interpretation_revisions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  interpretationId: uuid("interpretation_id")
+    .notNull()
+    .references(() => interpretations.id, { onDelete: "cascade" }),
+  theoryId: uuid("theory_id").notNull(),
+  theoryObjectId: uuid("theory_object_id").notNull(),
+  body: text("body").notNull(),
+  editorId: text("editor_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const publicationRevisions = pgTable("publication_revisions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  publicationId: uuid("publication_id")
+    .notNull()
+    .references(() => publications.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 300 }).notNull(),
+  body: text("body").notNull(),
+  externalUrl: varchar("external_url", { length: 500 }),
+  editorId: text("editor_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ----- Co-authorship -----
+
+export const interpretationCoauthors = pgTable(
+  "interpretation_coauthors",
+  {
+    interpretationId: uuid("interpretation_id")
+      .notNull()
+      .references(() => interpretations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    addedAt: timestamp("added_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.interpretationId, t.userId] })],
+);
+
+export const publicationCoauthors = pgTable(
+  "publication_coauthors",
+  {
+    publicationId: uuid("publication_id")
+      .notNull()
+      .references(() => publications.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    addedAt: timestamp("added_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.publicationId, t.userId] })],
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
@@ -715,6 +775,8 @@ export const publicationsRelations = relations(publications, ({ one, many }) => 
   }),
   tags: many(publicationTags),
   references: many(publicationReferences),
+  revisions: many(publicationRevisions),
+  coauthors: many(publicationCoauthors),
 }));
 
 export const publicationTagsRelations = relations(publicationTags, ({ one }) => ({
@@ -731,6 +793,62 @@ export const publicationReferencesRelations = relations(
     publication: one(publications, {
       fields: [publicationReferences.publicationId],
       references: [publications.id],
+    }),
+  }),
+);
+
+export const interpretationRevisionsRelations = relations(
+  interpretationRevisions,
+  ({ one }) => ({
+    interpretation: one(interpretations, {
+      fields: [interpretationRevisions.interpretationId],
+      references: [interpretations.id],
+    }),
+    editor: one(users, {
+      fields: [interpretationRevisions.editorId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const publicationRevisionsRelations = relations(
+  publicationRevisions,
+  ({ one }) => ({
+    publication: one(publications, {
+      fields: [publicationRevisions.publicationId],
+      references: [publications.id],
+    }),
+    editor: one(users, {
+      fields: [publicationRevisions.editorId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const interpretationCoauthorsRelations = relations(
+  interpretationCoauthors,
+  ({ one }) => ({
+    interpretation: one(interpretations, {
+      fields: [interpretationCoauthors.interpretationId],
+      references: [interpretations.id],
+    }),
+    user: one(users, {
+      fields: [interpretationCoauthors.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const publicationCoauthorsRelations = relations(
+  publicationCoauthors,
+  ({ one }) => ({
+    publication: one(publications, {
+      fields: [publicationCoauthors.publicationId],
+      references: [publications.id],
+    }),
+    user: one(users, {
+      fields: [publicationCoauthors.userId],
+      references: [users.id],
     }),
   }),
 );
@@ -960,6 +1078,8 @@ export const interpretationsRelations = relations(interpretations, ({ one, many 
     references: [users.id],
   }),
   comments: many(comments),
+  revisions: many(interpretationRevisions),
+  coauthors: many(interpretationCoauthors),
 }));
 
 export const commentsRelations = relations(comments, ({ one, many }) => ({

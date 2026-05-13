@@ -2,7 +2,9 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
+  publicationCoauthors,
   publicationReferences,
+  publicationRevisions,
   publicationTags,
   publications,
   tags,
@@ -304,23 +306,57 @@ export const publicationRouter = createTRPCRouter({
           id: publications.id,
           authorId: publications.authorId,
           language: publications.language,
+          title: publications.title,
+          body: publications.body,
+          externalUrl: publications.externalUrl,
         })
         .from(publications)
         .where(eq(publications.id, input.id))
         .limit(1);
       if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
-      if (existing.authorId !== ctx.userId) {
+
+      let allowed = existing.authorId === ctx.userId;
+      if (!allowed) {
+        const [co] = await ctx.db
+          .select({ userId: publicationCoauthors.userId })
+          .from(publicationCoauthors)
+          .where(
+            and(
+              eq(publicationCoauthors.publicationId, input.id),
+              eq(publicationCoauthors.userId, ctx.userId),
+            ),
+          )
+          .limit(1);
+        allowed = Boolean(co);
+      }
+      if (!allowed) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Только автор может править",
+          message: "Только автор или соавтор может править",
         });
       }
+
+      const newExternalUrl = input.externalUrl || null;
+      const changed =
+        existing.title !== input.title ||
+        existing.body !== input.body ||
+        (existing.externalUrl ?? null) !== newExternalUrl;
+      if (changed) {
+        await ctx.db.insert(publicationRevisions).values({
+          publicationId: input.id,
+          title: existing.title,
+          body: existing.body,
+          externalUrl: existing.externalUrl,
+          editorId: ctx.userId,
+        });
+      }
+
       await ctx.db
         .update(publications)
         .set({
           title: input.title,
           body: input.body,
-          externalUrl: input.externalUrl || null,
+          externalUrl: newExternalUrl,
           updatedAt: new Date(),
         })
         .where(eq(publications.id, input.id));
@@ -340,6 +376,122 @@ export const publicationRouter = createTRPCRouter({
         }
       }
 
+      return { ok: true as const };
+    }),
+
+  history: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db.query.publicationRevisions.findMany({
+        where: eq(publicationRevisions.publicationId, input.id),
+        orderBy: [desc(publicationRevisions.createdAt)],
+        with: {
+          editor: {
+            columns: { id: true, username: true, name: true },
+          },
+        },
+      });
+      return rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        body: r.body,
+        externalUrl: r.externalUrl,
+        createdAt: r.createdAt,
+        editor: r.editor
+          ? {
+              id: r.editor.id,
+              username: r.editor.username ?? "",
+              name: r.editor.name ?? "",
+            }
+          : null,
+      }));
+    }),
+
+  coauthors: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db.query.publicationCoauthors.findMany({
+        where: eq(publicationCoauthors.publicationId, input.id),
+        with: {
+          user: {
+            columns: { id: true, username: true, name: true, image: true },
+          },
+        },
+      });
+      return rows
+        .filter((r) => r.user)
+        .map((r) => ({
+          id: r.user!.id,
+          username: r.user!.username ?? "",
+          name: r.user!.name ?? "",
+          image: r.user!.image ?? null,
+          addedAt: r.addedAt,
+        }));
+    }),
+
+  addCoauthor: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), username: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const [pub] = await ctx.db
+        .select({ id: publications.id, authorId: publications.authorId })
+        .from(publications)
+        .where(eq(publications.id, input.id))
+        .limit(1);
+      if (!pub) throw new TRPCError({ code: "NOT_FOUND" });
+      if (pub.authorId !== ctx.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Только главный автор управляет соавторами",
+        });
+      }
+      const [target] = await ctx.db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.username, input.username))
+        .limit(1);
+      if (!target) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Пользователь не найден",
+        });
+      }
+      if (target.id === ctx.userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Себя добавлять не нужно",
+        });
+      }
+      try {
+        await ctx.db.insert(publicationCoauthors).values({
+          publicationId: input.id,
+          userId: target.id,
+        });
+      } catch {
+        // already a coauthor
+      }
+      return { ok: true as const };
+    }),
+
+  removeCoauthor: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [pub] = await ctx.db
+        .select({ id: publications.id, authorId: publications.authorId })
+        .from(publications)
+        .where(eq(publications.id, input.id))
+        .limit(1);
+      if (!pub) throw new TRPCError({ code: "NOT_FOUND" });
+      if (pub.authorId !== ctx.userId && input.userId !== ctx.userId) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      await ctx.db
+        .delete(publicationCoauthors)
+        .where(
+          and(
+            eq(publicationCoauthors.publicationId, input.id),
+            eq(publicationCoauthors.userId, input.userId),
+          ),
+        );
       return { ok: true as const };
     }),
 

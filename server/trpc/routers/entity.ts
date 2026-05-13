@@ -351,6 +351,7 @@ export const entityRouter = createTRPCRouter({
             votesDown: c.votesDown,
             userVote: (commentVotes.get(c.id) ?? 0) as 1 | -1 | 0,
             authorId: c.authorId,
+            parentCommentId: c.parentCommentId,
             author: c.author
               ? {
                   id: c.author.id,

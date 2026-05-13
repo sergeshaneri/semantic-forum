@@ -471,6 +471,48 @@ export type Dictionary = {
       string
     >;
   };
+  stats: {
+    title: string;
+    subtitle: string;
+    totalsHeading: string;
+    weeklyHeading: string;
+    labels: Record<
+      | "users"
+      | "entities"
+      | "theories"
+      | "interpretations"
+      | "comments"
+      | "votes"
+      | "publications"
+      | "schools"
+      | "questions"
+      | "events"
+      | "newInterpretations"
+      | "newComments"
+      | "newUsers",
+      string
+    >;
+  };
+  versioning: {
+    history: string;
+    historyEmpty: string;
+    revisionLabel: string;
+    by: string;
+    backToCurrent: string;
+    diffBetween: string;
+    current: string;
+    noDiff: string;
+  };
+  coauthors: {
+    title: string;
+    add: string;
+    addPlaceholder: string;
+    remove: string;
+    empty: string;
+    notFound: string;
+    selfNotAllowed: string;
+    added: string;
+  };
   health: {
     label: string;
     stub: string;
@@ -979,6 +1021,47 @@ const ru: Dictionary = {
       custom: "своё",
     },
   },
+  stats: {
+    title: "Статистика платформы",
+    subtitle: "Открытые цифры по содержанию и активности сообщества.",
+    totalsHeading: "Всего",
+    weeklyHeading: "За последнюю неделю",
+    labels: {
+      users: "Пользователи",
+      entities: "Сущности",
+      theories: "Теории",
+      interpretations: "Интерпретации",
+      comments: "Комментарии",
+      votes: "Голоса",
+      publications: "Публикации",
+      schools: "Школы",
+      questions: "Вопросы",
+      events: "События",
+      newInterpretations: "Новых интерпретаций",
+      newComments: "Новых комментариев",
+      newUsers: "Новых пользователей",
+    },
+  },
+  versioning: {
+    history: "История правок",
+    historyEmpty: "Версий пока нет — это первая редакция.",
+    revisionLabel: "Версия",
+    by: "автор",
+    backToCurrent: "← К текущей версии",
+    diffBetween: "Изменения",
+    current: "Текущая",
+    noDiff: "Изменений нет.",
+  },
+  coauthors: {
+    title: "Соавторы",
+    add: "Добавить соавтора",
+    addPlaceholder: "username",
+    remove: "убрать",
+    empty: "Соавторов пока нет.",
+    notFound: "Пользователь не найден",
+    selfNotAllowed: "Себя добавлять не нужно",
+    added: "Добавлен",
+  },
   health: {
     label: "Состояние сервера",
     stub: "Stub-режим: данные из mock-слоя, БД не подключена.",
@@ -1486,6 +1569,47 @@ const en: Dictionary = {
       follows: "follows",
       custom: "custom",
     },
+  },
+  stats: {
+    title: "Platform stats",
+    subtitle: "Open numbers about the content and activity of the community.",
+    totalsHeading: "Total",
+    weeklyHeading: "Last 7 days",
+    labels: {
+      users: "Users",
+      entities: "Entities",
+      theories: "Theories",
+      interpretations: "Interpretations",
+      comments: "Comments",
+      votes: "Votes",
+      publications: "Publications",
+      schools: "Schools",
+      questions: "Questions",
+      events: "Events",
+      newInterpretations: "New interpretations",
+      newComments: "New comments",
+      newUsers: "New users",
+    },
+  },
+  versioning: {
+    history: "Revision history",
+    historyEmpty: "No revisions yet — this is the first edit.",
+    revisionLabel: "Revision",
+    by: "by",
+    backToCurrent: "← Back to current",
+    diffBetween: "Changes",
+    current: "Current",
+    noDiff: "No changes.",
+  },
+  coauthors: {
+    title: "Co-authors",
+    add: "Add co-author",
+    addPlaceholder: "username",
+    remove: "remove",
+    empty: "No co-authors yet.",
+    notFound: "User not found",
+    selfNotAllowed: "Can't add yourself",
+    added: "Added",
   },
   health: {
     label: "Server status",

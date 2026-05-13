@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { CoauthorsManager } from "@/components/socionics/coauthors-manager";
+import { RevisionHistory } from "@/components/socionics/revision-history";
+import { auth } from "@/lib/auth/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { api } from "@/lib/trpc/server";
@@ -33,6 +35,10 @@ export default async function PublicationPage({
   }
 
   const { publication, author, tags, references } = data;
+  const session = await auth();
+  const currentUserId =
+    (session?.user as { id?: string } | undefined)?.id ?? null;
+  const isOwner = currentUserId === publication.authorId;
   const ytId = publication.externalUrl
     ? getYouTubeId(publication.externalUrl)
     : null;
@@ -113,6 +119,24 @@ export default async function PublicationPage({
           {publication.body}
         </p>
       </div>
+
+      <Separator />
+      <section className="space-y-4">
+        <CoauthorsManager
+          kind="publication"
+          id={publication.id}
+          isOwner={isOwner}
+          lang={lang}
+          dict={dict}
+        />
+        <RevisionHistory
+          kind="publication"
+          id={publication.id}
+          currentBody={publication.body}
+          currentTitle={publication.title}
+          dict={dict}
+        />
+      </section>
 
       {(references.entities.length > 0 ||
         references.theories.length > 0 ||
