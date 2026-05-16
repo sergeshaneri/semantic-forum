@@ -4,6 +4,7 @@ import { eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { users } from "@/server/db/schema";
 import { isEmailConfigured, sendWelcomeEmail } from "@/lib/email";
+import { clientIpFromHeaders, rateLimit } from "@/lib/rate-limit";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 const registerSchema = z.object({
@@ -22,6 +23,20 @@ export const authRouter = createTRPCRouter({
   register: publicProcedure
     .input(registerSchema)
     .mutation(async ({ ctx, input }) => {
+      // IP-based rate limit: 5 registrations per hour per IP.
+      const ip = clientIpFromHeaders(ctx.headers);
+      const r = rateLimit(`register:ip:${ip}`, {
+        capacity: 5,
+        windowMs: 60 * 60_000,
+      });
+      if (!r.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message:
+            "Слишком много попыток регистрации с этого IP. Попробуй позже.",
+        });
+      }
+
       const existing = await ctx.db
         .select({
           id: users.id,

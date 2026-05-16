@@ -3,6 +3,11 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "@/lib/auth/auth";
 import { hasWriteScope, verifyApiKey, type VerifiedApiKey } from "@/lib/api-key";
+import {
+  clientIpFromHeaders,
+  LIMITS,
+  rateLimit,
+} from "@/lib/rate-limit";
 import { db } from "@/server/db";
 
 export async function createTRPCContext(opts: { headers: Headers }) {
@@ -68,6 +73,23 @@ export const protectedProcedure = t.procedure.use(({ ctx, type, next }) => {
       });
     }
   }
+
+  // Rate limit mutations only. Reads are cheap and we don't want to
+  // accidentally throttle pagination.
+  if (type === "mutation") {
+    const identity = ctx.apiKey
+      ? `key:${ctx.apiKey.id}`
+      : `session:${userId}`;
+    const opts = ctx.apiKey ? LIMITS.apiKey : LIMITS.session;
+    const r = rateLimit(identity, opts);
+    if (!r.ok) {
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: `Слишком много запросов. Повтори через ${r.retryAfterSeconds} с.`,
+      });
+    }
+  }
+
   return next({
     ctx: {
       ...ctx,

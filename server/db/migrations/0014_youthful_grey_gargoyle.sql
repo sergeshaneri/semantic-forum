@@ -1,0 +1,21 @@
+CREATE INDEX "annotations_entity_idx" ON "annotations" USING btree ("entity_id");--> statement-breakpoint
+CREATE INDEX "annotations_author_idx" ON "annotations" USING btree ("author_id");--> statement-breakpoint
+CREATE INDEX "comments_interpretation_idx" ON "comments" USING btree ("interpretation_id");--> statement-breakpoint
+CREATE INDEX "comments_author_idx" ON "comments" USING btree ("author_id");--> statement-breakpoint
+CREATE INDEX "comments_parent_idx" ON "comments" USING btree ("parent_comment_id");--> statement-breakpoint
+CREATE INDEX "conversation_participants_user_idx" ON "conversation_participants" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "follows_following_idx" ON "follows" USING btree ("following_id");--> statement-breakpoint
+CREATE INDEX "group_members_user_idx" ON "group_members" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "group_post_comments_post_idx" ON "group_post_comments" USING btree ("group_post_id");--> statement-breakpoint
+CREATE INDEX "group_post_comments_author_idx" ON "group_post_comments" USING btree ("author_id");--> statement-breakpoint
+CREATE INDEX "group_posts_group_created_idx" ON "group_posts" USING btree ("group_id","created_at");--> statement-breakpoint
+CREATE INDEX "group_posts_author_idx" ON "group_posts" USING btree ("author_id");--> statement-breakpoint
+CREATE INDEX "interpretations_entity_idx" ON "interpretations" USING btree ("entity_id");--> statement-breakpoint
+CREATE INDEX "interpretations_theory_idx" ON "interpretations" USING btree ("theory_id");--> statement-breakpoint
+CREATE INDEX "interpretations_theory_object_idx" ON "interpretations" USING btree ("theory_object_id");--> statement-breakpoint
+CREATE INDEX "interpretations_author_idx" ON "interpretations" USING btree ("author_id");--> statement-breakpoint
+CREATE INDEX "interpretations_created_idx" ON "interpretations" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "messages_conversation_created_idx" ON "messages" USING btree ("conversation_id","created_at");--> statement-breakpoint
+CREATE INDEX "notifications_recipient_created_idx" ON "notifications" USING btree ("recipient_id","created_at");--> statement-breakpoint
+CREATE INDEX "notifications_recipient_unread_idx" ON "notifications" USING btree ("recipient_id","read_at");--> statement-breakpoint
+CREATE INDEX "votes_target_idx" ON "votes" USING btree ("target_type","target_id");

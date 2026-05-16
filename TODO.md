@@ -1,148 +1,93 @@
 # TODO — Pending Features
 
-Status as of round 7. Features are bundled in suggested rounds. Each item has a design hint so future-me / future-Claude can start coding without re-thinking.
+Status as of round 13 (post-batch covering DMs, Polls, Groups, Annotations, API keys, Onboarding, Welcome email, URL import, Mobile nav, MCP server, OG images, Indexes, Rate limit, Tests).
 
-## Quick wins (next round, batch them)
+Most of the original TODO has shipped. What's left is split between **infrastructure hardening** that compounds over time and **net-new features** that need product judgment.
 
-### 1. "Add to Collection" menu — finish collections UX
-**Schema:** ready (`collections` + `collection_items`, polymorphic targets).
-**Router:** ready (`collection.addItem`, `collection.removeItem`, `collection.mine`).
-**UI to do:**
-- New client component `<AddToCollectionMenu targetType targetId>` placed next to `<BookmarkButton>` everywhere bookmarks exist (entity page, interpretation card, publication page, theory page, school page, product page, question page, event page).
-- Dropdown showing user's collections (cache via `trpc.collection.mine.useQuery({ enabled: open })`).
-- "Сохранено в N коллекциях" indicator + checkboxes per collection.
-- "+ Новая коллекция" inline mini-form at the bottom of the dropdown.
+---
 
-### 2. Cross-references UI in publication form
-**Schema:** ready (`publication_references`, polymorphic).
-**Router:** ready (`publication.create` accepts `references[]`).
-**UI to do:**
-- In `<AddPublicationForm>`, below tags input, add a "Связать с" section.
-- Use `trpc.search.global` debounced + dropdown to pick entity / theory / theory_object.
-- Chips for chosen references, drop on `×`.
-- Pass to mutation.
+## Infra hardening (recommended next)
 
-### 3. Mentorship matchmaker — surface flags
-**Schema:** ready (`users.mentor_available`, `users.mentor_seeking`).
-**Router to add:** `user.mentorList({ kind: 'available' | 'seeking', language })` returning users with flag set, ordered by karma.
-**UI to do:**
-- New page `/[lang]/mentors` with two tabs (Available / Seeking).
-- Cards with avatar, name, schools, "Связаться" button → message to TG link if user has one in `userLinks` else mailto.
+### Rate limit → Redis
+Currently in-memory in `lib/rate-limit.ts`. Single Railway instance is fine. The day we go multi-instance, swap for `@upstash/ratelimit` or a small Redis. Same interface, ~20 LOC change.
 
-## Medium
+### Error tracking
+No Sentry / OpenTelemetry currently. When a real user hits a 500 we have no idea. Wire Sentry SDK with `dsn` env var, sample 100% of errors for now. ~1 hour.
 
-### 4. Direct messages (DMs)
-**New schema:**
-```ts
-conversations (id, createdAt)
-conversation_participants (conversationId, userId, lastReadAt, primary key)
-messages (id, conversationId, authorId, body, createdAt)
-```
-**Router:** `dm.list`, `dm.thread`, `dm.send`, `dm.markRead`.
-**UI:** `/messages` (list of threads) + `/messages/[conversationId]` (thread).
-**Notifications:** integrate with existing `notifications` table (new type `message` — add to enum).
-**Realtime nice-to-have:** Pusher / Ably / SSE / polling. For MVP, just 30s polling on conversation page.
+### Database backups verification
+Railway has automatic backups, but we never tested restore. One-time: snapshot → restore to a fresh DB → run smoke test.
 
-### 5. Groups / Communities
-**Decision pending:** are these like Reddit subs (anyone posts), Discourse forums (threaded), or Slack-like channels?
-**Suggested MVP:** Reddit-like.
-**New schema:**
-```ts
-groups (id, slug, name, description, language, ownerId, isPrivate, createdAt)
-group_members (groupId, userId, role: owner | moderator | member, joinedAt, primary key)
-group_posts (id, groupId, authorId, title, slug, body, language, createdAt)
-group_post_comments (use existing comments? or new table — interpretation comments are already polymorphic-ish)
-```
-**Decision:** reuse `comments` and make it polymorphic over both `interpretations` and `group_posts` — would need migration. Or make a separate `group_post_comments`. Probably simpler: separate table.
-**Pages:** `/groups`, `/groups/[slug]`, `/groups/[slug]/posts/[postSlug]`.
+### Move seed data to JSON
+`scripts/seed.ts` and `scripts/expand-seed.ts` hardcode TS literals. Move to `seed/classical-model-a.json` + `seed/generations.json` for easier community contribution. Pure refactor.
 
-### 6. Versioning (interpretations & publications)
-**New schema:**
-```ts
-interpretation_revisions (id, interpretationId, body, theoryId, theoryObjectId, editorId, createdAt)
-publication_revisions (id, publicationId, title, body, editorId, createdAt)
-```
-**Trigger:** on every `update` mutation, snapshot before-state into revisions.
-**UI:** "История правок" button on interpretation/publication → modal with diff between revisions.
-**Diff lib:** `diff-match-patch` or `jsdiff` — render unified-diff style with green/red lines.
+### Prepared statements for hot paths
+`vote.cast`, `notification.unreadCount`, `user.checklistProgress` run on every action. Drizzle supports `.prepare()`. Measurable latency win once traffic grows.
 
-### 7. Co-authorship
-**New schema:**
-```ts
-interpretation_coauthors (interpretationId, userId, role: editor | translator | reviewer)
-publication_coauthors (publicationId, userId, role)
-```
-**Router:** add `addCoauthor` / `removeCoauthor` mutations on each (only by main author).
-**UI:** "Соавторы" section on the create/edit form with username search → add chip.
-**Permissions:** any co-author can edit (or only certain roles). MVP — all co-authors can edit.
+### Postgres full-text search
+`search.global` uses ILIKE which can't use indexes for `%term%`. Switch to `tsvector` / `tsquery` with a generated column or trigger. Big win for search relevance + speed.
 
-### 8. Annotations on materials (Genius-style)
-**Most complex. Multiple weeks of work.**
-**Schema:**
-```ts
-annotations (id, entityId, startOffset, endOffset, anchorText, authorId, language)
-annotation_interpretations — link annotations to interpretations
-```
-**UI:**
-- Highlighting layer over rendered material (markdown body for text materials, transcript for video materials).
-- On selection — popup "Добавить интерпретацию к этому фрагменту".
-- Side margin shows colored markers for existing annotations.
-- Click marker → sidebar with interpretations on that fragment.
-**Library to consider:** `rangy` or custom Selection API + DOM-range serialization.
-**Defer:** until other features stable. This needs UX prototyping.
+### Group post comments → notifications
+Currently group post comments don't trigger notifications. Mirror the interpretation-comment logic (notify post author + @mentions).
 
-## Lower priority
+### Double-load on group post page
+`/groups/[slug]/posts/[postSlug]` fetches the group twice (once via `getPost`, once via `getBySlug` for `isMember`). Merge into one query.
 
-### 9. Cite syntax: `[[#title]]` for theory-objects, `[[@username]]` for users
-**Extension** of existing `expandCitations`. Easy to add — just regex variants.
+---
 
-### 10. Podcasts dedicated rendering
-**Schema:** already supported via `materials` + `source.kind = 'podcast'`.
-**To add:** audio embed in `MaterialEmbed` — detect Spotify/Apple/Yandex Music URL and use their iframe embed widgets. Generic audio URL → HTML5 `<audio>` element.
+## Net-new features (need user input on priority)
 
-### 11. Import from Telegram / Substack
-**Telegram:** Telegram channels expose a public web view. Could scrape or use Telegram Bot API to import messages as publications.
-**Substack:** RSS-based, easier.
-**Approach:** new endpoint `import.fromUrl(url)` that fetches, parses, and creates a draft publication. User reviews and publishes.
+### Spam / abuse reporting + moderation queue
+New `reports` table (reporter, target type+id, reason, status). Report button on interpretations / comments / posts / DMs. Admin queue at `/admin/reports`. Requires deciding who's "admin" — owner flag, role-based, or just the first user.
 
-### 12. API embed widget
-**New route:** `/embed/[type]/[id]` returns minimal HTML page with a single card (interpretation, school, etc.).
-**Use case:** external blogs embed our content via `<iframe>`.
-**Add:** `X-Frame-Options: ALLOWALL` for these routes, CSP-friendly.
+### Reactions (emoji on comments / posts)
+Like Discord/Slack. New `reactions` table (target type+id, emoji, userId). UI: emoji picker on hover. Lower friction than a full vote, faster signal.
 
-### 13. Reply threading on comments
-**Schema:** already has `comments.parent_comment_id` — unused so far. Just need UI:
-- Render replies indented under parent (max 3 levels deep).
-- "Reply" button on each comment puts new comment as child.
+### SSE / WebSocket for realtime
+DMs and notifications poll every 30s. SSE through Next.js Route Handlers (`/api/sse`) would push instantly. Pusher / Ably as managed alternative.
 
-### 14. Email digest
-**Use:** weekly summary of unread notifications, top trending, new content from followed users.
-**Setup:** background job (Vercel Cron or Railway scheduled task) + email provider (Resend).
+### Translate between ru/en
+Button on interpretation / publication: "Translate to EN". Uses DeepL or OpenAI under the hood. Stored as a separate row linked by `originalId` — same pattern as theory forks.
 
-### 15. Polls / typing-by-voting
-**New schema:** `polls (id, question, options jsonb, language, createdBy)` + `poll_votes (pollId, userId, optionIndex)`.
-**Use case:** community types a person by voting on which TIM they think it is.
+### Premium tier
+Plan mentioned this for advanced typologies (Психософия, Темпористика) and AI features. Needs payment gateway choice (Stripe? Robokassa? LemonSqueezy?). Big project.
 
-### 16. Anonymous read-only stats
-- Public dashboard `/stats` — number of users, interpretations, theories, recent activity counts.
+### TypingPoll — specialized poll for "what's this person's TIM"
+Pre-fills the 16 TIMs as options. Aggregates results in profile of the person being typed. Could be a v2 of polls or a separate table.
 
-### 17. Themes / dark mode toggle
-- Add toggle in header (Sun/Moon icon).
-- Persist in localStorage + `data-theme` attribute on `<html>`.
+### Activity feed beyond follows
+Currently `/[lang]` shows follow-only feed. Add "trending" mixed-feed: high-vote interpretations from anyone in last 24h, regardless of follow. Reddit-style frontpage.
 
-## Refactor / Tech debt
+### Annotation v2: margin markers
+Current annotations are listed below body. Show them as colored markers in the right margin, click to scroll to fragment, like Genius / Hypothesis.
 
-- Move `seed.ts` mock data to a separate JSON or YAML file — currently hardcoded TS literals
-- Extract `getBySlug` patterns into a generic helper (entity/theory/school/publication all have similar shape)
-- Add Drizzle prepared statements for hot paths (vote.cast, notification.unreadCount)
-- Add `ON CONFLICT DO NOTHING` to upsert paths in expand-seed (currently catches `try/empty catch`)
-- Replace `confirm()` browser dialogs with shadcn AlertDialog
-- Mobile responsive audit — header collapses awkwardly on narrow screens
+### Telegram OAuth login
+Original plan deferred to v2. Telegram login widget — community-supported Auth.js provider exists, ~half-day integration.
+
+### Mobile app via Expo
+`tRPC` API is ready — would just be a React Native shell over the same router. Big undertaking.
+
+---
+
+## Polish + tech debt
+
+- **Profile customization**: cover image, theme accent color, gradient
+- **Better empty states** — most "empty" sections just say "пока нет". Could illustrate
+- **Email verification flow** — currently any email lands as a valid account
+- **Password reset** — no flow currently. Once Resend is wired, add `forgot-password` page
+- **Account deletion** — GDPR requires this be possible
+- **Export my data** — JSON dump of everything the user authored
+- **PWA manifest** — installable as app, offline read of bookmarks
+- **Image upload** — currently profile image is URL only. Add R2/Cloudinary upload
+- **Markdown editor with preview** — replace bare textareas. `@uiw/react-md-editor` or roll our own with `<Markdown>` preview pane
+- **Dark mode visual audit** — was added quickly, some places look off
+- **Mobile UX audit on real devices** — hamburger works, but exact spacing / tap targets need eyes
+
+---
 
 ## Open decisions
 
-1. **Avatars:** currently URL field. Switch to Railway Volume upload? Or Cloudflare R2? Or Cloudinary? Decision needed before scaling.
-2. **Telegram login:** still TODO from original plan. Login Widget approach (~2-3 days).
-3. **AI features (V2):** auto-detect logical fallacies in interpretations? Suggest related citations? Out of scope until traction.
-4. **Premium tier:** plan said vtoryichnye typologies (Психософия, Темпористика) and AI as paid. Not implemented; no payments wired yet.
-5. **Moderation:** no roles yet. Should "curator" / "admin" badges grant editing of others' work? Currently locked to author only.
+1. **Avatars storage:** URL field for now. R2 / Cloudinary / Railway Volume when scaling
+2. **AI features:** auto-detect fallacies in arguments? Cite-suggestion? Out of scope until traction
+3. **Moderation roles:** "curator" / "admin" badges? Currently only authors can edit
+4. **Pricing model:** if premium tier ships, what's the line between free and paid?
+5. **Mobile native:** Expo is the technical answer, but is there demand?

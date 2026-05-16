@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   foreignKey,
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -437,7 +438,10 @@ export const follows = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (t) => [primaryKey({ columns: [t.followerId, t.followingId] })],
+  (t) => [
+    primaryKey({ columns: [t.followerId, t.followingId] }),
+    index("follows_following_idx").on(t.followingId),
+  ],
 );
 
 export const accounts = pgTable(
@@ -558,20 +562,30 @@ export const entities = pgTable(
   (t) => [uniqueIndex("entities_slug_lang_idx").on(t.slug, t.language)],
 );
 
-export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  recipientId: text("recipient_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
-  type: notificationTypeEnum("type").notNull(),
-  targetType: varchar("target_type", { length: 32 }),
-  targetId: text("target_id"),
-  url: varchar("url", { length: 500 }),
-  message: text("message"),
-  readAt: timestamp("read_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    recipientId: text("recipient_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+    type: notificationTypeEnum("type").notNull(),
+    targetType: varchar("target_type", { length: 32 }),
+    targetId: text("target_id"),
+    url: varchar("url", { length: 500 }),
+    message: text("message"),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("notifications_recipient_created_idx").on(
+      t.recipientId,
+      t.createdAt,
+    ),
+    index("notifications_recipient_unread_idx").on(t.recipientId, t.readAt),
+  ],
+);
 
 export const bookmarks = pgTable(
   "bookmarks",
@@ -586,26 +600,36 @@ export const bookmarks = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.targetType, t.targetId] })],
 );
 
-export const interpretations = pgTable("interpretations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  entityId: uuid("entity_id")
-    .notNull()
-    .references(() => entities.id, { onDelete: "cascade" }),
-  theoryId: uuid("theory_id")
-    .notNull()
-    .references(() => theories.id, { onDelete: "restrict" }),
-  theoryObjectId: uuid("theory_object_id")
-    .notNull()
-    .references(() => theoryObjects.id, { onDelete: "restrict" }),
-  authorId: text("author_id").references(() => users.id, { onDelete: "set null" }),
-  body: text("body").notNull(),
-  language: langEnum("language").notNull(),
-  votesUp: integer("votes_up").default(0).notNull(),
-  votesDown: integer("votes_down").default(0).notNull(),
-  score: integer("score").default(0).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at"),
-});
+export const interpretations = pgTable(
+  "interpretations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    entityId: uuid("entity_id")
+      .notNull()
+      .references(() => entities.id, { onDelete: "cascade" }),
+    theoryId: uuid("theory_id")
+      .notNull()
+      .references(() => theories.id, { onDelete: "restrict" }),
+    theoryObjectId: uuid("theory_object_id")
+      .notNull()
+      .references(() => theoryObjects.id, { onDelete: "restrict" }),
+    authorId: text("author_id").references(() => users.id, { onDelete: "set null" }),
+    body: text("body").notNull(),
+    language: langEnum("language").notNull(),
+    votesUp: integer("votes_up").default(0).notNull(),
+    votesDown: integer("votes_down").default(0).notNull(),
+    score: integer("score").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
+  },
+  (t) => [
+    index("interpretations_entity_idx").on(t.entityId),
+    index("interpretations_theory_idx").on(t.theoryId),
+    index("interpretations_theory_object_idx").on(t.theoryObjectId),
+    index("interpretations_author_idx").on(t.authorId),
+    index("interpretations_created_idx").on(t.createdAt),
+  ],
+);
 
 export const comments = pgTable(
   "comments",
@@ -629,6 +653,9 @@ export const comments = pgTable(
       foreignColumns: [t.id],
       name: "comments_parent_fk",
     }),
+    index("comments_interpretation_idx").on(t.interpretationId),
+    index("comments_author_idx").on(t.authorId),
+    index("comments_parent_idx").on(t.parentCommentId),
   ],
 );
 
@@ -644,7 +671,10 @@ export const votes = pgTable(
     value: smallint("value").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (t) => [uniqueIndex("votes_user_target_idx").on(t.userId, t.targetType, t.targetId)],
+  (t) => [
+    uniqueIndex("votes_user_target_idx").on(t.userId, t.targetType, t.targetId),
+    index("votes_target_idx").on(t.targetType, t.targetId),
+  ],
 );
 
 export const entityRelations = pgTable(
@@ -747,22 +777,29 @@ export const apiKeys = pgTable("api_keys", {
 
 // ----- Annotations (Genius-style notes on materials/entities) -----
 
-export const annotations = pgTable("annotations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  entityId: uuid("entity_id")
-    .notNull()
-    .references(() => entities.id, { onDelete: "cascade" }),
-  authorId: text("author_id").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  anchorText: varchar("anchor_text", { length: 1000 }).notNull(),
-  startOffset: integer("start_offset"),
-  endOffset: integer("end_offset"),
-  body: text("body").notNull(),
-  language: langEnum("language").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at"),
-});
+export const annotations = pgTable(
+  "annotations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    entityId: uuid("entity_id")
+      .notNull()
+      .references(() => entities.id, { onDelete: "cascade" }),
+    authorId: text("author_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    anchorText: varchar("anchor_text", { length: 1000 }).notNull(),
+    startOffset: integer("start_offset"),
+    endOffset: integer("end_offset"),
+    body: text("body").notNull(),
+    language: langEnum("language").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
+  },
+  (t) => [
+    index("annotations_entity_idx").on(t.entityId),
+    index("annotations_author_idx").on(t.authorId),
+  ],
+);
 
 // ----- Direct messages -----
 
@@ -784,20 +821,32 @@ export const conversationParticipants = pgTable(
     lastReadAt: timestamp("last_read_at"),
     joinedAt: timestamp("joined_at").defaultNow().notNull(),
   },
-  (t) => [primaryKey({ columns: [t.conversationId, t.userId] })],
+  (t) => [
+    primaryKey({ columns: [t.conversationId, t.userId] }),
+    index("conversation_participants_user_idx").on(t.userId),
+  ],
 );
 
-export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  conversationId: uuid("conversation_id")
-    .notNull()
-    .references(() => conversations.id, { onDelete: "cascade" }),
-  authorId: text("author_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  body: text("body").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("messages_conversation_created_idx").on(
+      t.conversationId,
+      t.createdAt,
+    ),
+  ],
+);
 
 // ----- Groups / Communities -----
 
@@ -830,7 +879,10 @@ export const groupMembers = pgTable(
     role: groupMemberRoleEnum("role").default("member").notNull(),
     joinedAt: timestamp("joined_at").defaultNow().notNull(),
   },
-  (t) => [primaryKey({ columns: [t.groupId, t.userId] })],
+  (t) => [
+    primaryKey({ columns: [t.groupId, t.userId] }),
+    index("group_members_user_idx").on(t.userId),
+  ],
 );
 
 export const groupPosts = pgTable(
@@ -853,21 +905,32 @@ export const groupPosts = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at"),
   },
-  (t) => [uniqueIndex("group_posts_group_slug_idx").on(t.groupId, t.slug)],
+  (t) => [
+    uniqueIndex("group_posts_group_slug_idx").on(t.groupId, t.slug),
+    index("group_posts_group_created_idx").on(t.groupId, t.createdAt),
+    index("group_posts_author_idx").on(t.authorId),
+  ],
 );
 
-export const groupPostComments = pgTable("group_post_comments", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  groupPostId: uuid("group_post_id")
-    .notNull()
-    .references(() => groupPosts.id, { onDelete: "cascade" }),
-  authorId: text("author_id").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  body: text("body").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at"),
-});
+export const groupPostComments = pgTable(
+  "group_post_comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupPostId: uuid("group_post_id")
+      .notNull()
+      .references(() => groupPosts.id, { onDelete: "cascade" }),
+    authorId: text("author_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at"),
+  },
+  (t) => [
+    index("group_post_comments_post_idx").on(t.groupPostId),
+    index("group_post_comments_author_idx").on(t.authorId),
+  ],
+);
 
 // ----- Polls -----
 
