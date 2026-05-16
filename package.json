@@ -15,7 +15,9 @@
     "db:seed": "dotenv -e .env -- tsx scripts/seed.ts",
     "db:expand": "dotenv -e .env -- tsx scripts/expand-seed.ts",
     "db:bootstrap": "dotenv -e .env -- tsx scripts/bootstrap.ts",
-    "auth:secret": "npx auth secret"
+    "auth:secret": "npx auth secret",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
@@ -51,11 +53,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.2",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.6"
   }
 }
