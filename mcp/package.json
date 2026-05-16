@@ -1,0 +1,31 @@
+{
+  "name": "@socionics/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Socionics Semantics — exposes content tools to Claude Desktop / Cursor / Cline.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "socionics-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
